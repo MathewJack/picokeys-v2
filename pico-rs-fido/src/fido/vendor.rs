@@ -365,8 +365,8 @@ pub fn handle_vendor(
                 return Err(CtapError::InvalidLength);
             }
             config.button_gpio = data[0];
-            config.button_polarity = ButtonPolarity::try_from(data[1])
-                .map_err(|_| CtapError::InvalidParameter)?;
+            config.button_polarity =
+                ButtonPolarity::try_from(data[1]).map_err(|_| CtapError::InvalidParameter)?;
             if data[2] == 0 || data[2] > 60 {
                 return Err(CtapError::InvalidParameter);
             }

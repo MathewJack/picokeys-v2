@@ -50,6 +50,10 @@ impl Default for FidoConfig {
 pub struct FidoApp {
     /// Authenticator configuration (persisted).
     pub config: FidoConfig,
+    /// Hardware / vendor-level device configuration (persisted).
+    pub device_config: vendor::DeviceConfig,
+    /// Extra authenticator-config state (RP ID whitelist, force PIN change).
+    pub config_extras: config::ConfigExtras,
     /// RAM-only PIN token (cleared on reset / power cycle).
     pin_token: Option<[u8; 32]>,
     /// Tick (ms since boot) when the device was powered on.
@@ -63,6 +67,24 @@ impl FidoApp {
     pub fn new(config: FidoConfig, boot_time_ms: u64) -> Self {
         Self {
             config,
+            device_config: vendor::DeviceConfig::default(),
+            config_extras: config::ConfigExtras::new(),
+            pin_token: None,
+            boot_time_ms,
+            large_blobs: large_blobs::LargeBlobStore::new(),
+        }
+    }
+
+    /// Create a new `FidoApp` with both FIDO and device configs.
+    pub fn with_device_config(
+        config: FidoConfig,
+        device_config: vendor::DeviceConfig,
+        boot_time_ms: u64,
+    ) -> Self {
+        Self {
+            config,
+            device_config,
+            config_extras: config::ConfigExtras::new(),
             pin_token: None,
             boot_time_ms,
             large_blobs: large_blobs::LargeBlobStore::new(),
@@ -215,29 +237,51 @@ impl FidoApp {
         payload: &[u8],
         response: &mut [u8],
     ) -> Result<usize, CtapError> {
+        // Payload format:
+        //   [sub_command: u8]
+        //   [pin_protocol: u8][pin_auth: 16 bytes]   ← present when PIN is set
+        //   [params...]
         if payload.is_empty() {
             return Err(CtapError::MissingParameter);
         }
         let sub = config::ConfigSubCommand::try_from(payload[0])?;
-        let params = &payload[1..];
-        match sub {
-            config::ConfigSubCommand::EnableEnterpriseAttestation => {
-                self.config.enterprise_attestation = true;
+
+        let params = if let Some(ref token) = self.pin_token {
+            // PIN is set → require auth header.
+            if payload.len() < 18 {
+                return Err(CtapError::PinAuthInvalid);
             }
-            config::ConfigSubCommand::ToggleAlwaysUv => {
-                self.config.always_uv = !self.config.always_uv;
+            let pin_protocol = client_pin::PinProtocol::try_from(payload[1])?;
+            let pin_auth = &payload[2..18];
+            let params = &payload[18..];
+
+            // HMAC message = sub_command || params
+            let mut msg = [0u8; 256];
+            msg[0] = payload[0];
+            let plen = params.len().min(255);
+            msg[1..1 + plen].copy_from_slice(&params[..plen]);
+
+            if !client_pin::verify_pin_auth(
+                pin_protocol,
+                token,
+                &msg[..1 + plen],
+                pin_auth,
+            ) {
+                return Err(CtapError::PinAuthInvalid);
             }
-            config::ConfigSubCommand::SetMinPinLength => {
-                if params.is_empty() {
-                    return Err(CtapError::MissingParameter);
-                }
-                let len = params[0];
-                if len < 4 || len > 63 {
-                    return Err(CtapError::InvalidParameter);
-                }
-                self.config.min_pin_length = len;
-            }
-        }
+            params
+        } else {
+            // No PIN set — allow without auth.
+            &payload[1..]
+        };
+
+        config::handle_authenticator_config(
+            sub,
+            params,
+            &mut self.config,
+            &mut self.config_extras,
+        )?;
+
         if response.is_empty() {
             return Err(CtapError::InvalidLength);
         }
@@ -254,12 +298,62 @@ impl FidoApp {
             return Err(CtapError::MissingParameter);
         }
         let vcmd = vendor::VendorCommand::try_from(payload[0])?;
-        let vdata = &payload[1..];
+        let rest = &payload[1..];
+
+        // Authenticated commands carry: [pin_protocol: u8][pin_auth: 16 B][data…]
+        let cmd_data = if vcmd.requires_auth() {
+            if let Some(ref token) = self.pin_token {
+                if rest.len() < 17 {
+                    return Err(CtapError::PinAuthInvalid);
+                }
+                let pin_protocol = client_pin::PinProtocol::try_from(rest[0])?;
+                let pin_auth = &rest[1..17];
+                let data = &rest[17..];
+
+                // HMAC message = vendor_subcmd || data
+                let mut msg = [0u8; 256];
+                msg[0] = payload[0];
+                let dlen = data.len().min(255);
+                msg[1..1 + dlen].copy_from_slice(&data[..dlen]);
+
+                if !client_pin::verify_pin_auth(
+                    pin_protocol,
+                    token,
+                    &msg[..1 + dlen],
+                    pin_auth,
+                ) {
+                    return Err(CtapError::PinAuthInvalid);
+                }
+                data
+            } else {
+                // No PIN set — allow without auth.
+                rest
+            }
+        } else {
+            rest
+        };
+
         if response.is_empty() {
             return Err(CtapError::InvalidLength);
         }
         response[0] = CtapError::Ok as u8;
-        let n = vendor::handle_vendor(vcmd, vdata, &mut response[1..])?;
+        let (n, effects) = vendor::handle_vendor(
+            vcmd,
+            cmd_data,
+            &mut self.device_config,
+            &mut response[1..],
+        )?;
+
+        // Apply side effects.
+        if effects.aaguid_updated {
+            self.config.aaguid = self.device_config.aaguid;
+        }
+        if effects.factory_reset {
+            self.pin_token = None;
+            self.config.client_pin_set = false;
+            self.large_blobs.clear();
+        }
+
         Ok(1 + n)
     }
 }

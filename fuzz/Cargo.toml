@@ -1,0 +1,29 @@
+[package]
+name = "picokeys-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+pico-rs-sdk = { path = "../pico-rs-sdk", default-features = false }
+pico-rs-fido = { path = "../pico-rs-fido", default-features = false }
+
+[[bin]]
+name = "fuzz_ctap_cbor"
+path = "fuzz_targets/fuzz_ctap_cbor.rs"
+
+[[bin]]
+name = "fuzz_ccid_apdu"
+path = "fuzz_targets/fuzz_ccid_apdu.rs"
+
+[[bin]]
+name = "fuzz_credential_decode"
+path = "fuzz_targets/fuzz_credential_decode.rs"
+
+[[bin]]
+name = "fuzz_hid_framing"
+path = "fuzz_targets/fuzz_hid_framing.rs"

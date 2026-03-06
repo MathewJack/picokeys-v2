@@ -1,0 +1,23 @@
+[workspace]
+members = [
+    "pico-rs-sdk",
+    "pico-rs-fido",
+    "pico-rs-hsm",
+    "picokeys-cli",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/pico-keys/picokeys-v2"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+debug = false
+
+[profile.release.package.num-bigint-dig]
+opt-level = 3

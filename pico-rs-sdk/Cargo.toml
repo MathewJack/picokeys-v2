@@ -1,0 +1,81 @@
+[package]
+name = "pico-rs-sdk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Core SDK for PicoKeys v2 — transport, crypto, storage, LED, button abstractions"
+
+[features]
+default = []
+rp2040 = ["dep:embassy-rp", "dep:rp2040-boot2", "dep:ws2812-pio", "dep:cortex-m", "dep:cortex-m-rt"]
+rp2350 = ["dep:embassy-rp", "dep:ws2812-pio", "dep:cortex-m", "dep:cortex-m-rt"]
+esp32s3 = ["dep:esp-hal"]
+esp32c5 = ["dep:esp-hal"]
+esp32c6 = ["dep:esp-hal"]
+samd21 = ["dep:atsamd-hal", "dep:cortex-m", "dep:cortex-m-rt"]
+
+[dependencies]
+# Embassy async runtime
+embassy-executor = { version = "0.7", default-features = false }
+embassy-time = { version = "0.4", default-features = false }
+embassy-sync = { version = "0.6", default-features = false }
+embassy-futures = { version = "0.1", default-features = false }
+embassy-usb = { version = "0.4", default-features = false }
+embassy-usb-driver = { version = "0.1", default-features = false }
+
+# Storage
+sequential-storage = "4.0"
+embedded-storage = "0.3"
+embedded-storage-async = "0.4"
+
+# APDU / Smart Card
+iso7816 = "0.1"
+
+# Crypto
+p256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
+p384 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+p521 = { version = "0.13", default-features = false }
+k256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+ed25519-dalek = { version = "2.1", default-features = false, features = ["rand_core"] }
+x25519-dalek = { version = "2.0", default-features = false }
+rsa = { version = "0.9", default-features = false }
+aes = { version = "0.8", default-features = false }
+aes-gcm = { version = "0.10", default-features = false, features = ["aes"] }
+chacha20poly1305 = { version = "0.10", default-features = false }
+cbc = { version = "0.1", default-features = false }
+hmac = { version = "0.12", default-features = false }
+hkdf = { version = "0.12", default-features = false }
+pbkdf2 = { version = "0.12", default-features = false, features = ["hmac"] }
+sha2 = { version = "0.10", default-features = false }
+sha1 = { version = "0.10", default-features = false }
+cmac = { version = "0.7", default-features = false }
+subtle = { version = "2.6", default-features = false }
+zeroize = { version = "1.8", default-features = false, features = ["derive"] }
+rand_core = { version = "0.6", default-features = false }
+der = { version = "0.7", default-features = false }
+pkcs8 = { version = "0.10", default-features = false }
+
+# Data structures
+heapless = "0.8"
+
+# Logging
+defmt = "0.3"
+
+# Embedded traits
+embedded-hal = "1.0"
+
+# LED
+smart-leds = "0.4"
+
+# Platform: RP2040/RP2350
+embassy-rp = { version = "0.4", default-features = false, optional = true }
+rp2040-boot2 = { version = "0.3", optional = true }
+ws2812-pio = { version = "0.8", optional = true }
+cortex-m = { version = "0.7", optional = true }
+cortex-m-rt = { version = "0.7", optional = true }
+
+# Platform: ESP32
+esp-hal = { version = "1.0.0-beta.0", optional = true }
+
+# Platform: SAMD21
+atsamd-hal = { version = "0.17", optional = true }

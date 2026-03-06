@@ -1,0 +1,30 @@
+[package]
+name = "picokeys-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CLI management tool for PicoKeys v2 — firmware management + ykman-like device interaction"
+
+[[bin]]
+name = "picokeys-cli"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+hidapi = "2.6"
+pcsc = "2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_cbor = "0.11"
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+thiserror = "2.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+indicatif = "0.17"
+dialoguer = "0.11"
+colored = "3"
+tabled = "0.17"
+hex = "0.4"
+rand = "0.8"
+data-encoding = "2"

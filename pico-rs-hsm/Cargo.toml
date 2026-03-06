@@ -1,0 +1,56 @@
+[package]
+name = "pico-rs-hsm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Hardware Security Module (HSM) application for PicoKeys v2"
+
+[features]
+default = []
+rp2040 = ["pico-rs-sdk/rp2040"]
+rp2350 = ["pico-rs-sdk/rp2350"]
+esp32s3 = ["pico-rs-sdk/esp32s3"]
+esp32c5 = ["pico-rs-sdk/esp32c5"]
+esp32c6 = ["pico-rs-sdk/esp32c6"]
+samd21 = ["pico-rs-sdk/samd21"]
+
+[dependencies]
+pico-rs-sdk = { path = "../pico-rs-sdk" }
+
+# Crypto
+rsa = { version = "0.9", default-features = false }
+p256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
+p384 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+p521 = { version = "0.13", default-features = false }
+k256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+ed25519-dalek = { version = "2.1", default-features = false }
+x25519-dalek = { version = "2.0", default-features = false }
+aes = { version = "0.8", default-features = false }
+aes-gcm = { version = "0.10", default-features = false, features = ["aes"] }
+chacha20poly1305 = { version = "0.10", default-features = false }
+cbc = { version = "0.1", default-features = false }
+hmac = { version = "0.12", default-features = false }
+hkdf = { version = "0.12", default-features = false }
+pbkdf2 = { version = "0.12", default-features = false }
+sha2 = { version = "0.10", default-features = false }
+cmac = { version = "0.7", default-features = false }
+zeroize = { version = "1.8", default-features = false, features = ["derive"] }
+subtle = { version = "2.6", default-features = false }
+rand_core = { version = "0.6", default-features = false }
+der = { version = "0.7", default-features = false }
+pkcs8 = { version = "0.10", default-features = false }
+x509-cert = { version = "0.2", default-features = false }
+bip32 = { version = "0.5", default-features = false }
+
+# CBOR
+cbor-smol = "0.5"
+
+# Data structures
+heapless = "0.8"
+defmt = "0.3"
+
+# Embassy
+embassy-executor = { version = "0.7", default-features = false }
+embassy-time = { version = "0.4", default-features = false }
+embassy-sync = { version = "0.6", default-features = false }
+embassy-usb = { version = "0.4", default-features = false }

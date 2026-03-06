@@ -1,0 +1,19 @@
+[build]
+# Default target (host) for CLI builds; override per-binary via cargo flags.
+
+[target.thumbv6m-none-eabi]
+rustflags = ["-C", "link-arg=-Tlink.x"]
+runner = "probe-rs run --chip RP2040"
+
+[target.thumbv8m.main-none-eabihf]
+rustflags = ["-C", "link-arg=-Tlink.x"]
+runner = "probe-rs run --chip RP2350"
+
+[target.xtensa-esp32s3-none-elf]
+runner = "espflash flash --monitor"
+
+[target.riscv32imac-unknown-none-elf]
+runner = "espflash flash --monitor"
+
+[env]
+DEFMT_LOG = "info"

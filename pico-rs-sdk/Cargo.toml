@@ -7,6 +7,7 @@ description = "Core SDK for PicoKeys v2 — transport, crypto, storage, LED, but
 
 [features]
 default = []
+alloc = ["dep:rsa", "zeroize/alloc"]
 rp2040 = ["dep:embassy-rp", "dep:rp2040-boot2", "dep:ws2812-pio", "dep:cortex-m", "dep:cortex-m-rt"]
 rp2350 = ["dep:embassy-rp", "dep:ws2812-pio", "dep:cortex-m", "dep:cortex-m-rt"]
 esp32s3 = ["dep:esp-hal"]
@@ -33,12 +34,12 @@ iso7816 = "0.1"
 
 # Crypto
 p256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-p384 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+p384 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
 p521 = { version = "0.13", default-features = false }
-k256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
-ed25519-dalek = { version = "2.1", default-features = false, features = ["rand_core"] }
-x25519-dalek = { version = "2.0", default-features = false }
-rsa = { version = "0.9", default-features = false }
+k256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
+ed25519-dalek = { version = "2.1", default-features = false, features = ["rand_core", "zeroize"] }
+x25519-dalek = { version = "2.0", default-features = false, features = ["static_secrets", "zeroize"] }
+rsa = { version = "0.9", default-features = false, optional = true }
 aes = { version = "0.8", default-features = false }
 aes-gcm = { version = "0.10", default-features = false, features = ["aes"] }
 chacha20poly1305 = { version = "0.10", default-features = false }

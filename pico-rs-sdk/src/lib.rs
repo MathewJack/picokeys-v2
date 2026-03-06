@@ -2,6 +2,9 @@
 #![no_std]
 #![allow(async_fn_in_trait)]
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 pub mod apdu;
 pub mod button;
 pub mod crypto;

@@ -4,10 +4,10 @@
 //! constructs authData + attestation object, optionally stores a resident
 //! credential, and returns the CBOR-encoded response.
 
-use super::cbor::{CborDecoder, CborEncoder, CborValue};
+use super::cbor::{CborDecoder, CborEncoder};
 use super::ctap::CtapError;
 use crate::credential::{CredentialStore, PrivateKeyMaterial, ResidentCredential};
-use heapless::{String, Vec};
+use heapless::Vec;
 use pico_rs_sdk::crypto;
 use pico_rs_sdk::crypto::ecc;
 use zeroize::Zeroize;
@@ -316,36 +316,36 @@ fn encode_cose_okp_key(
 /// Encode the COSE public key into a buffer. Returns bytes written.
 fn encode_cose_public_key(
     alg: CoseAlgorithm,
-    pub_key: &ecc::EcPublicKey,
+    pub_key: &[u8],
     buf: &mut [u8],
 ) -> Result<usize, CtapError> {
     let mut enc = CborEncoder::new(buf);
     match alg {
         CoseAlgorithm::Es256 => {
             // Uncompressed SEC1: 0x04 || x(32) || y(32)
-            if pub_key.bytes.len() != 65 {
+            if pub_key.len() != 65 {
                 return Err(CtapError::InvalidParameter);
             }
-            let x = &pub_key.bytes[1..33];
-            let y = &pub_key.bytes[33..65];
+            let x = &pub_key[1..33];
+            let y = &pub_key[33..65];
             // crv = 1 (P-256)
             encode_cose_ec2_key(&mut enc, -7, 1, x, y)?;
         }
         CoseAlgorithm::Es256K => {
-            if pub_key.bytes.len() != 65 {
+            if pub_key.len() != 65 {
                 return Err(CtapError::InvalidParameter);
             }
-            let x = &pub_key.bytes[1..33];
-            let y = &pub_key.bytes[33..65];
+            let x = &pub_key[1..33];
+            let y = &pub_key[33..65];
             // crv = 8 (secp256k1)
             encode_cose_ec2_key(&mut enc, -47, 8, x, y)?;
         }
         CoseAlgorithm::EdDsa => {
             // Ed25519 public key: 32 bytes
-            if pub_key.bytes.len() != 32 {
+            if pub_key.len() != 32 {
                 return Err(CtapError::InvalidParameter);
             }
-            encode_cose_okp_key(&mut enc, &pub_key.bytes)?;
+            encode_cose_okp_key(&mut enc, pub_key)?;
         }
         _ => return Err(CtapError::InvalidParameter),
     }
@@ -592,7 +592,7 @@ pub fn handle_make_credential(
     let alg = select_algorithm(&request.pub_key_cred_params)?;
 
     // 6. Generate key pair
-    let (priv_key, pub_key) = match alg {
+    let keypair = match alg {
         CoseAlgorithm::Es256 => ecc::generate_p256(rng).map_err(|_| CtapError::Other)?,
         CoseAlgorithm::Es256K => ecc::generate_k256(rng).map_err(|_| CtapError::Other)?,
         CoseAlgorithm::EdDsa => ecc::generate_ed25519(rng).map_err(|_| CtapError::Other)?,
@@ -601,7 +601,7 @@ pub fn handle_make_credential(
 
     // 7. Encode COSE public key
     let mut cose_pub_key_buf = [0u8; 256];
-    let cose_pub_key_len = encode_cose_public_key(alg, &pub_key, &mut cose_pub_key_buf)?;
+    let cose_pub_key_len = encode_cose_public_key(alg, &keypair.public_key, &mut cose_pub_key_buf)?;
     let cose_pub_key = &cose_pub_key_buf[..cose_pub_key_len];
 
     // 8. Generate credential ID (encrypted private key + rp_id_hash)
@@ -610,7 +610,7 @@ pub fn handle_make_credential(
     // Use a zero MKEK-derived key for now — in production the KEK comes from the MKEK
     let cred_encryption_key = [0u8; 32]; // placeholder; real impl derives from MKEK
     let credential_id =
-        crate::credential::id::generate_credential_id(&priv_key.bytes, &rp_id_hash, &nonce, &cred_encryption_key);
+        crate::credential::id::generate_credential_id(&keypair.private_key, &rp_id_hash, &nonce, &cred_encryption_key);
 
     // 9. Process extensions
     let mut hmac_secret_random: Option<[u8; 64]> = None;
@@ -669,7 +669,7 @@ pub fn handle_make_credential(
     sig_input[auth_data_len..auth_data_len + 32].copy_from_slice(request.client_data_hash);
     let sig_input_len = auth_data_len + 32;
 
-    let signature = sign_with_algorithm(alg, &priv_key.bytes, &sig_input[..sig_input_len])?;
+    let signature = sign_with_algorithm(alg, &keypair.private_key, &sig_input[..sig_input_len])?;
 
     // 12. Store credential if rk
     if request.options.rk {
@@ -691,7 +691,7 @@ pub fn handle_make_credential(
                 .push_str(display)
                 .map_err(|_| CtapError::InvalidLength)?;
         }
-        cred.private_key = PrivateKeyMaterial::from_slice(&priv_key.bytes)
+        cred.private_key = PrivateKeyMaterial::from_slice(&keypair.private_key)
             .map_err(|_| CtapError::Other)?;
         cred.public_key_cose
             .extend_from_slice(cose_pub_key)

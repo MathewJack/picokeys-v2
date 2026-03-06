@@ -3,13 +3,12 @@
 //! Looks up matching credentials by allow-list or discoverable credentials,
 //! signs the assertion, and returns the CBOR-encoded response.
 
-use super::cbor::{CborDecoder, CborEncoder, CborValue};
+use super::cbor::{CborDecoder, CborEncoder};
 use super::ctap::CtapError;
 use crate::credential::CredentialStore;
 use heapless::Vec;
 use pico_rs_sdk::crypto;
 use pico_rs_sdk::crypto::ecc;
-use pico_rs_sdk::crypto::symmetric::hmac_sha256;
 use zeroize::Zeroize;
 
 // ---- Request types ----
@@ -297,8 +296,7 @@ fn sign_assertion(
     }
 
     // Zeroize sig_input
-    let mut z = sig_input;
-    z.zeroize();
+    sig_input.zeroize();
 
     Ok(sig)
 }
@@ -311,6 +309,7 @@ fn sign_assertion(
 /// `HMAC-SHA256(credRandom[32..64], salt2)`.
 ///
 /// Returns the extension output CBOR.
+#[allow(dead_code)]
 fn process_hmac_secret(
     _cred_random: &[u8; 64],
     _input: &HmacSecretInput,

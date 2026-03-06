@@ -162,21 +162,21 @@ pub fn u2f_register(
     encryption_key: &[u8; 32],
 ) -> Result<usize, u16> {
     // Generate P-256 key pair
-    let (priv_key, pub_key) = generate_p256(rng).map_err(|_| SW_WRONG_DATA)?;
+    let keypair = generate_p256(rng).map_err(|_| SW_WRONG_DATA)?;
 
     // The public key must be 65 bytes (uncompressed P-256 point: 0x04 || x || y)
-    if pub_key.bytes.len() != 65 {
+    if keypair.public_key.len() != 65 {
         return Err(SW_WRONG_DATA);
     }
     let mut pub_key_bytes = [0u8; 65];
-    pub_key_bytes.copy_from_slice(&pub_key.bytes);
+    pub_key_bytes.copy_from_slice(&keypair.public_key);
 
     // Generate random nonce for credential ID encryption
     let mut nonce = [0u8; 16];
     rng.fill_bytes(&mut nonce);
 
     // Build key handle = encrypted credential ID
-    let key_handle = generate_credential_id(&priv_key.bytes, app_id, &nonce, encryption_key);
+    let key_handle = generate_credential_id(&keypair.private_key, app_id, &nonce, encryption_key);
     let kh_len = key_handle.len();
 
     if kh_len > 255 {
@@ -184,7 +184,7 @@ pub fn u2f_register(
     }
 
     // Build attestation cert (self-signed with the generated key for now)
-    let attestation_cert = build_self_signed_attestation_cert(&pub_key_bytes, &priv_key.bytes);
+    let attestation_cert = build_self_signed_attestation_cert(&pub_key_bytes, &keypair.private_key);
 
     // Build data to sign: 0x00 | app_id(32) | challenge(32) | key_handle | pubkey(65)
     let sign_data_len = 1 + 32 + 32 + kh_len + 65;
@@ -205,7 +205,7 @@ pub fn u2f_register(
     sign_data[pos..pos + 65].copy_from_slice(&pub_key_bytes);
 
     let sign_hash = sha256(&sign_data[..sign_data_len]);
-    let signature = pico_rs_sdk::crypto::ecc::ecdsa_sign_p256(&priv_key.bytes, &sign_hash)
+    let signature = pico_rs_sdk::crypto::ecc::ecdsa_sign_p256(&keypair.private_key, &sign_hash)
         .map_err(|_| SW_WRONG_DATA)?;
 
     // Build response: 0x05 | pubkey(65) | key_handle_len(1) | key_handle | cert | signature

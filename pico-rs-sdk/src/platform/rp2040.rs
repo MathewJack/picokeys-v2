@@ -183,10 +183,7 @@ impl BootselButton {
         interrupt::free(|_cs| unsafe {
             // Save original CTRL and override OEOVER to disable output.
             let saved = core::ptr::read_volatile(QSPI_SS_CTRL);
-            core::ptr::write_volatile(
-                QSPI_SS_CTRL,
-                (saved & !OEOVER_BITS) | OEOVER_DISABLE,
-            );
+            core::ptr::write_volatile(QSPI_SS_CTRL, (saved & !OEOVER_BITS) | OEOVER_DISABLE);
 
             // Brief delay for the pad voltage to settle (~4 cycles).
             cortex_m::asm::nop();

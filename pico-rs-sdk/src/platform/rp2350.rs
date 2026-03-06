@@ -285,10 +285,7 @@ impl BootselButton {
     fn read_raw() -> bool {
         interrupt::free(|_cs| unsafe {
             let saved = core::ptr::read_volatile(QSPI_SS_CTRL);
-            core::ptr::write_volatile(
-                QSPI_SS_CTRL,
-                (saved & !OEOVER_BITS) | OEOVER_DISABLE,
-            );
+            core::ptr::write_volatile(QSPI_SS_CTRL, (saved & !OEOVER_BITS) | OEOVER_DISABLE);
 
             // Brief delay for pad voltage to settle (~4 cycles).
             cortex_m::asm::nop();
@@ -483,8 +480,7 @@ const ACCESSCTRL_BASE: u32 = 0x4015_C000;
 pub fn check_secure_boot() -> SecureBootState {
     // LOCK0 register at offset 0x00 — bit 0 indicates whether the boot
     // ROM activated TrustZone secure partitioning.
-    let val =
-        unsafe { core::ptr::read_volatile((ACCESSCTRL_BASE) as *const u32) };
+    let val = unsafe { core::ptr::read_volatile((ACCESSCTRL_BASE) as *const u32) };
 
     if (val & 1) != 0 {
         SecureBootState::Enabled

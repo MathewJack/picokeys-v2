@@ -150,8 +150,8 @@ fn crc16(data: &[u8]) -> u16 {
 
 /// AES-128-ECB single-block encrypt in place.
 fn aes128_ecb_encrypt(key: &[u8; 16], block: &mut [u8; 16]) {
+    use aes::cipher::{generic_array::GenericArray, BlockEncrypt, KeyInit};
     use aes::Aes128;
-    use aes::cipher::{BlockEncrypt, KeyInit, generic_array::GenericArray};
 
     let cipher = Aes128::new(GenericArray::from_slice(key));
     let mut blk = GenericArray::clone_from_slice(block);

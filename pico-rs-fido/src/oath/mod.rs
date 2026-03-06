@@ -163,7 +163,8 @@ impl OathApp {
         if pos + name_len > data.len() {
             return Err(SW_WRONG_DATA);
         }
-        let name_str = core::str::from_utf8(&data[pos..pos + name_len]).map_err(|_| SW_WRONG_DATA)?;
+        let name_str =
+            core::str::from_utf8(&data[pos..pos + name_len]).map_err(|_| SW_WRONG_DATA)?;
         pos += name_len;
 
         // Parse KEY tag
@@ -200,12 +201,9 @@ impl OathApp {
             let imf_len = *data.get(pos).ok_or(SW_WRONG_DATA)? as usize;
             pos += 1;
             if imf_len == 4 && pos + 4 <= data.len() {
-                counter = u32::from_be_bytes([
-                    data[pos],
-                    data[pos + 1],
-                    data[pos + 2],
-                    data[pos + 3],
-                ]) as u64;
+                counter =
+                    u32::from_be_bytes([data[pos], data[pos + 1], data[pos + 2], data[pos + 3]])
+                        as u64;
             }
         }
 
@@ -342,8 +340,7 @@ impl OathApp {
                     }
                     response[rpos] = TAG_NAME;
                     response[rpos + 1] = name_bytes.len() as u8;
-                    response[rpos + 2..rpos + 2 + name_bytes.len()]
-                        .copy_from_slice(name_bytes);
+                    response[rpos + 2..rpos + 2 + name_bytes.len()].copy_from_slice(name_bytes);
                     rpos += 2 + name_bytes.len();
 
                     response[rpos] = TAG_TOUCH_RESPONSE;
@@ -357,8 +354,7 @@ impl OathApp {
                     }
                     response[rpos] = TAG_NAME;
                     response[rpos + 1] = name_bytes.len() as u8;
-                    response[rpos + 2..rpos + 2 + name_bytes.len()]
-                        .copy_from_slice(name_bytes);
+                    response[rpos + 2..rpos + 2 + name_bytes.len()].copy_from_slice(name_bytes);
                     rpos += 2 + name_bytes.len();
 
                     let code = match cred.oath_type {

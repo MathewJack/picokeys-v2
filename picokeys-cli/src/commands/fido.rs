@@ -8,8 +8,6 @@ use crate::device::DeviceDetector;
 use crate::transport::hid::HidTransport;
 
 // CTAP2 command bytes.
-const CTAP2_CMD_MAKE_CREDENTIAL: u8 = 0x01;
-const CTAP2_CMD_GET_ASSERTION: u8 = 0x02;
 const CTAP2_CMD_GET_INFO: u8 = 0x04;
 const CTAP2_CMD_CLIENT_PIN: u8 = 0x06;
 const CTAP2_CMD_RESET: u8 = 0x07;
@@ -150,7 +148,11 @@ fn prompt_pin(prompt: &str) -> Result<String> {
 }
 
 /// Encode a CTAP2 ClientPIN subcommand as CBOR.
-fn encode_client_pin_cbor(sub_command: u8, pin_protocol: u8, extra_fields: &[(serde_cbor::Value, serde_cbor::Value)]) -> Vec<u8> {
+fn encode_client_pin_cbor(
+    sub_command: u8,
+    pin_protocol: u8,
+    extra_fields: &[(serde_cbor::Value, serde_cbor::Value)],
+) -> Vec<u8> {
     use serde_cbor::Value;
 
     let mut map = Vec::new();
@@ -168,7 +170,10 @@ fn encode_client_pin_cbor(sub_command: u8, pin_protocol: u8, extra_fields: &[(se
 }
 
 /// Encode a CTAP2 CredentialManagement subcommand.
-fn encode_cred_mgmt_cbor(sub_command: u8, extra: &[(serde_cbor::Value, serde_cbor::Value)]) -> Vec<u8> {
+fn encode_cred_mgmt_cbor(
+    sub_command: u8,
+    extra: &[(serde_cbor::Value, serde_cbor::Value)],
+) -> Vec<u8> {
     use serde_cbor::Value;
 
     let mut map = Vec::new();
@@ -222,11 +227,15 @@ fn execute_fido_info(device: Option<&str>) -> Result<()> {
 
     // Decode and display the raw CBOR for detailed info.
     let cbor_data = &response[1..];
-    let value: serde_cbor::Value = serde_cbor::from_slice(cbor_data)
-        .map_err(|e| anyhow::anyhow!("CBOR decode error: {e}"))?;
+    let value: serde_cbor::Value =
+        serde_cbor::from_slice(cbor_data).map_err(|e| anyhow::anyhow!("CBOR decode error: {e}"))?;
 
     println!("{}", format_cbor_value(&value, 0));
-    println!("\n{} {}", "✓".green().bold(), "FIDO2 info retrieved.".green());
+    println!(
+        "\n{} {}",
+        "✓".green().bold(),
+        "FIDO2 info retrieved.".green()
+    );
     Ok(())
 }
 
@@ -243,8 +252,14 @@ fn execute_credentials_list(device: Option<&str>) -> Result<()> {
         0x09, // getPinUvAuthTokenUsingPinWithPermissions
         2,    // PIN protocol 2
         &[
-            (serde_cbor::Value::Integer(0x03), serde_cbor::Value::Bytes(pin_hash[..16].to_vec())),
-            (serde_cbor::Value::Integer(0x09), serde_cbor::Value::Integer(0x04)), // cm permission
+            (
+                serde_cbor::Value::Integer(0x03),
+                serde_cbor::Value::Bytes(pin_hash[..16].to_vec()),
+            ),
+            (
+                serde_cbor::Value::Integer(0x09),
+                serde_cbor::Value::Integer(0x04),
+            ), // cm permission
         ],
     );
 
@@ -259,7 +274,10 @@ fn execute_credentials_list(device: Option<&str>) -> Result<()> {
     let status = rp_response[0];
     if status == 0x3C {
         // NO_CREDENTIALS
-        println!("{}", "No discoverable credentials stored on device.".yellow());
+        println!(
+            "{}",
+            "No discoverable credentials stored on device.".yellow()
+        );
         return Ok(());
     }
     if status != 0x00 {
@@ -278,7 +296,11 @@ fn execute_credentials_list(device: Option<&str>) -> Result<()> {
             .iter()
             .find(|(k, _)| *k == serde_cbor::Value::Integer(0x05))
             .and_then(|(_, v)| {
-                if let serde_cbor::Value::Integer(n) = v { Some(*n as usize) } else { None }
+                if let serde_cbor::Value::Integer(n) = v {
+                    Some(*n as usize)
+                } else {
+                    None
+                }
             })
             .unwrap_or(1);
 
@@ -289,8 +311,8 @@ fn execute_credentials_list(device: Option<&str>) -> Result<()> {
         let cred_response = transport.send_cbor(CTAP2_CMD_CREDENTIAL_MGMT, &cred_enum_cbor)?;
 
         if !cred_response.is_empty() && cred_response[0] == 0x00 {
-            let cred_data: serde_cbor::Value = serde_cbor::from_slice(&cred_response[1..])
-                .unwrap_or(serde_cbor::Value::Null);
+            let cred_data: serde_cbor::Value =
+                serde_cbor::from_slice(&cred_response[1..]).unwrap_or(serde_cbor::Value::Null);
 
             let (user_name, cred_id) = extract_credential_info(&cred_data);
 
@@ -311,16 +333,16 @@ fn execute_credentials_list(device: Option<&str>) -> Result<()> {
             if next_rp_response.is_empty() || next_rp_response[0] != 0x00 {
                 break;
             }
-            let next_rp_data: serde_cbor::Value = serde_cbor::from_slice(&next_rp_response[1..])
-                .unwrap_or(serde_cbor::Value::Null);
+            let next_rp_data: serde_cbor::Value =
+                serde_cbor::from_slice(&next_rp_response[1..]).unwrap_or(serde_cbor::Value::Null);
             let next_rp_id = extract_rp_id(&next_rp_data);
 
             // Enumerate credentials for this RP.
             let cred_enum_cbor = encode_cred_mgmt_cbor(0x04, &[]);
             let cred_response = transport.send_cbor(CTAP2_CMD_CREDENTIAL_MGMT, &cred_enum_cbor)?;
             if !cred_response.is_empty() && cred_response[0] == 0x00 {
-                let cred_data: serde_cbor::Value = serde_cbor::from_slice(&cred_response[1..])
-                    .unwrap_or(serde_cbor::Value::Null);
+                let cred_data: serde_cbor::Value =
+                    serde_cbor::from_slice(&cred_response[1..]).unwrap_or(serde_cbor::Value::Null);
                 let (user_name, cred_id) = extract_credential_info(&cred_data);
                 credentials.push(CredentialRow {
                     index: cred_index,
@@ -400,7 +422,9 @@ fn execute_credentials_delete(device: Option<&str>, id: &str) -> Result<()> {
 fn execute_credentials_delete_all(device: Option<&str>) -> Result<()> {
     println!(
         "{}",
-        "⚠ This will delete ALL discoverable credentials on the device!".red().bold()
+        "⚠ This will delete ALL discoverable credentials on the device!"
+            .red()
+            .bold()
     );
 
     let confirmation: String = Input::new()
@@ -426,7 +450,10 @@ fn execute_credentials_delete_all(device: Option<&str>) -> Result<()> {
     }
 
     println!("{} All credentials deletion requested.", "✓".green().bold());
-    println!("{}", "Note: full delete-all implementation requires iterating all RPs/credentials.".dimmed());
+    println!(
+        "{}",
+        "Note: full delete-all implementation requires iterating all RPs/credentials.".dimmed()
+    );
     Ok(())
 }
 
@@ -451,7 +478,10 @@ fn execute_pin_set(device: Option<&str>) -> Result<()> {
         2,    // PIN protocol 2
         &[
             // 0x05: newPinEnc (encrypted PIN — simplified, would need ECDH in practice)
-            (serde_cbor::Value::Integer(0x05), serde_cbor::Value::Bytes(pin_hash.to_vec())),
+            (
+                serde_cbor::Value::Integer(0x05),
+                serde_cbor::Value::Bytes(pin_hash.to_vec()),
+            ),
         ],
     );
 
@@ -486,8 +516,14 @@ fn execute_pin_change(device: Option<&str>) -> Result<()> {
         0x04, // changePIN
         2,
         &[
-            (serde_cbor::Value::Integer(0x05), serde_cbor::Value::Bytes(new_pin_hash.to_vec())),
-            (serde_cbor::Value::Integer(0x06), serde_cbor::Value::Bytes(old_pin_hash[..16].to_vec())),
+            (
+                serde_cbor::Value::Integer(0x05),
+                serde_cbor::Value::Bytes(new_pin_hash.to_vec()),
+            ),
+            (
+                serde_cbor::Value::Integer(0x06),
+                serde_cbor::Value::Bytes(old_pin_hash[..16].to_vec()),
+            ),
         ],
     );
 
@@ -511,9 +547,10 @@ fn execute_pin_verify(device: Option<&str>) -> Result<()> {
     let verify_cbor = encode_client_pin_cbor(
         0x05,
         2,
-        &[
-            (serde_cbor::Value::Integer(0x03), serde_cbor::Value::Bytes(pin_hash[..16].to_vec())),
-        ],
+        &[(
+            serde_cbor::Value::Integer(0x03),
+            serde_cbor::Value::Bytes(pin_hash[..16].to_vec()),
+        )],
     );
 
     let response = transport.send_cbor(CTAP2_CMD_CLIENT_PIN, &verify_cbor)?;
@@ -560,7 +597,10 @@ fn execute_reset(device: Option<&str>) -> Result<()> {
     let transport = open_hid(device)?;
 
     println!("Sending FIDO2 Reset command...");
-    println!("{}", "Please touch the device to confirm reset.".cyan().bold());
+    println!(
+        "{}",
+        "Please touch the device to confirm reset.".cyan().bold()
+    );
 
     let response = transport.send_cbor(CTAP2_CMD_RESET, &[])?;
 
@@ -622,7 +662,10 @@ fn execute_config_enterprise_aaguid(device: Option<&str>, aaguid: &str) -> Resul
         .map_err(|_| anyhow::anyhow!("invalid AAGUID — expected 32 hex characters"))?;
 
     if aaguid_bytes.len() != 16 {
-        bail!("AAGUID must be exactly 16 bytes (32 hex chars), got {} bytes", aaguid_bytes.len());
+        bail!(
+            "AAGUID must be exactly 16 bytes (32 hex chars), got {} bytes",
+            aaguid_bytes.len()
+        );
     }
 
     let pin = prompt_pin("Enter FIDO2 PIN")?;
@@ -633,11 +676,14 @@ fn execute_config_enterprise_aaguid(device: Option<&str>, aaguid: &str) -> Resul
     let config_cbor_data = {
         let map: Vec<(Value, Value)> = vec![
             (Value::Integer(0x01), Value::Integer(0x01)), // subCommand: enableEnterpriseAttestation
-            (Value::Integer(0x02), Value::Map(
-                vec![(Value::Integer(0x01), Value::Bytes(aaguid_bytes))]
-                    .into_iter()
-                    .collect(),
-            )),
+            (
+                Value::Integer(0x02),
+                Value::Map(
+                    vec![(Value::Integer(0x01), Value::Bytes(aaguid_bytes))]
+                        .into_iter()
+                        .collect(),
+                ),
+            ),
         ];
         let cbor_map = Value::Map(map.into_iter().collect());
         serde_cbor::to_vec(&cbor_map).unwrap_or_default()
@@ -663,7 +709,12 @@ fn execute_backup_show(device: Option<&str>) -> Result<()> {
 
     let pin = prompt_pin("Enter FIDO2 PIN to authorize backup")?;
 
-    println!("{}", "Please touch the device to confirm backup export.".cyan().bold());
+    println!(
+        "{}",
+        "Please touch the device to confirm backup export."
+            .cyan()
+            .bold()
+    );
 
     let transport = open_hid(device)?;
 
@@ -671,9 +722,10 @@ fn execute_backup_show(device: Option<&str>) -> Result<()> {
     // Command: CTAPHID_CBOR with vendor command 0xF0 + subcommand.
     use serde_cbor::Value;
     let backup_cbor = {
-        let map: Vec<(Value, Value)> = vec![
-            (Value::Integer(0x01), Value::Integer(VENDOR_CMD_BACKUP_SHOW as i128)),
-        ];
+        let map: Vec<(Value, Value)> = vec![(
+            Value::Integer(0x01),
+            Value::Integer(VENDOR_CMD_BACKUP_SHOW as i128),
+        )];
         let cbor_map = Value::Map(map.into_iter().collect());
         serde_cbor::to_vec(&cbor_map).unwrap_or_default()
     };
@@ -688,8 +740,8 @@ fn execute_backup_show(device: Option<&str>) -> Result<()> {
 
     // Parse the CBOR response containing the 24 BIP39 words.
     let cbor_data = &response[1..];
-    let value: serde_cbor::Value = serde_cbor::from_slice(cbor_data)
-        .map_err(|e| anyhow::anyhow!("CBOR decode error: {e}"))?;
+    let value: serde_cbor::Value =
+        serde_cbor::from_slice(cbor_data).map_err(|e| anyhow::anyhow!("CBOR decode error: {e}"))?;
 
     if let serde_cbor::Value::Array(words) = &value {
         println!(
@@ -736,8 +788,7 @@ fn execute_backup_restore(device: Option<&str>, words: &str) -> Result<()> {
     );
     println!(
         "{}",
-        "All existing credentials encrypted with the old MKEK will become inaccessible."
-            .yellow()
+        "All existing credentials encrypted with the old MKEK will become inaccessible.".yellow()
     );
 
     let confirmation: String = Input::new()
@@ -752,7 +803,10 @@ fn execute_backup_restore(device: Option<&str>, words: &str) -> Result<()> {
 
     let pin = prompt_pin("Enter FIDO2 PIN")?;
 
-    println!("{}", "Please touch the device to confirm restore.".cyan().bold());
+    println!(
+        "{}",
+        "Please touch the device to confirm restore.".cyan().bold()
+    );
 
     let transport = open_hid(device)?;
 
@@ -764,7 +818,10 @@ fn execute_backup_restore(device: Option<&str>, words: &str) -> Result<()> {
 
     let restore_cbor = {
         let map: Vec<(Value, Value)> = vec![
-            (Value::Integer(0x01), Value::Integer(VENDOR_CMD_BACKUP_RESTORE as i128)),
+            (
+                Value::Integer(0x01),
+                Value::Integer(VENDOR_CMD_BACKUP_RESTORE as i128),
+            ),
             (Value::Integer(0x02), Value::Array(words_cbor)),
         ];
         let cbor_map = Value::Map(map.into_iter().collect());
@@ -851,9 +908,7 @@ fn extract_credential_info(value: &serde_cbor::Value) -> (String, String) {
                 if let serde_cbor::Value::Map(user_map) = v {
                     for (uk, uv) in user_map {
                         if let serde_cbor::Value::Text(key) = uk {
-                            if (key == "name" || key == "displayName")
-                                && user_name == "unknown"
-                            {
+                            if (key == "name" || key == "displayName") && user_name == "unknown" {
                                 if let serde_cbor::Value::Text(name) = uv {
                                     user_name = name.clone();
                                 }

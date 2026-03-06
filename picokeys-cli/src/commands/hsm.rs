@@ -212,11 +212,14 @@ struct KeyRow {
 
 /// Open CCID transport and select HSM applet.
 fn connect_hsm(device: Option<&str>) -> Result<CcidTransport> {
-    let transport = CcidTransport::open(device)
-        .context("failed to open CCID smartcard reader")?;
-    transport.select_aid(HSM_AID)
+    let transport = CcidTransport::open(device).context("failed to open CCID smartcard reader")?;
+    transport
+        .select_aid(HSM_AID)
         .context("failed to select SmartCard-HSM applet — is the HSM firmware installed?")?;
-    tracing::debug!("SmartCard-HSM applet selected on {}", transport.reader_name());
+    tracing::debug!(
+        "SmartCard-HSM applet selected on {}",
+        transport.reader_name()
+    );
     Ok(transport)
 }
 
@@ -227,7 +230,8 @@ fn verify_user_pin(transport: &CcidTransport) -> Result<()> {
         .interact()
         .context("failed to read PIN")?;
 
-    let (_, sw) = transport.transmit_apdu(0x00, INS_VERIFY_PIN, 0x00, PIN_REF_USER, pin.as_bytes())?;
+    let (_, sw) =
+        transport.transmit_apdu(0x00, INS_VERIFY_PIN, 0x00, PIN_REF_USER, pin.as_bytes())?;
     if sw != SW_OK {
         let retries = sw & 0x000F;
         if (sw & 0xFFF0) == 0x63C0 {
@@ -289,23 +293,41 @@ fn parse_algorithm(s: &str) -> Result<u8> {
 pub async fn run(cmd: HsmCommand, device: Option<&str>) -> Result<()> {
     match cmd.action {
         HsmAction::Info => run_info(device),
-        HsmAction::Init { so_pin, dkek_shares, dkek_threshold } => {
-            run_init(device, so_pin, dkek_shares, dkek_threshold)
-        }
+        HsmAction::Init {
+            so_pin,
+            dkek_shares,
+            dkek_threshold,
+        } => run_init(device, so_pin, dkek_shares, dkek_threshold),
         HsmAction::Keys { action } => run_keys(action, device),
         HsmAction::Dkek { action } => run_dkek(action, device),
-        HsmAction::Sign { key_id, algorithm, input, output } => {
-            run_sign(device, key_id, &algorithm, input.as_deref(), output.as_deref())
-        }
-        HsmAction::Verify { key_id, algorithm, input, signature } => {
-            run_verify(device, key_id, &algorithm, &input, &signature)
-        }
-        HsmAction::Encrypt { key_id, input, output } => {
-            run_encrypt(device, key_id, &input, output.as_deref())
-        }
-        HsmAction::Decrypt { key_id, input, output } => {
-            run_decrypt(device, key_id, &input, output.as_deref())
-        }
+        HsmAction::Sign {
+            key_id,
+            algorithm,
+            input,
+            output,
+        } => run_sign(
+            device,
+            key_id,
+            &algorithm,
+            input.as_deref(),
+            output.as_deref(),
+        ),
+        HsmAction::Verify {
+            key_id,
+            algorithm,
+            input,
+            signature,
+        } => run_verify(device, key_id, &algorithm, &input, &signature),
+        HsmAction::Encrypt {
+            key_id,
+            input,
+            output,
+        } => run_encrypt(device, key_id, &input, output.as_deref()),
+        HsmAction::Decrypt {
+            key_id,
+            input,
+            output,
+        } => run_decrypt(device, key_id, &input, output.as_deref()),
     }
 }
 
@@ -322,9 +344,16 @@ fn run_info(device: Option<&str>) -> Result<()> {
     println!("  Reader:  {}", transport.reader_name());
     if data.len() >= 4 {
         println!("  Version: {}.{}", data[0], data[1]);
-        println!("  Config:  {} (options: 0x{:02X}{:02X})", 
-            if data[2] & 0x01 != 0 { "initialized" } else { "uninitialized" },
-            data[2], data[3]);
+        println!(
+            "  Config:  {} (options: 0x{:02X}{:02X})",
+            if data[2] & 0x01 != 0 {
+                "initialized"
+            } else {
+                "uninitialized"
+            },
+            data[2],
+            data[3]
+        );
     }
 
     // List key count
@@ -412,7 +441,10 @@ fn run_init(
     println!("{}", "✓ HSM initialized successfully".green().bold());
     println!("  DKEK shares:    {dkek_shares}");
     println!("  DKEK threshold: {dkek_threshold}");
-    println!("  {}", "Import DKEK shares before generating keys.".yellow());
+    println!(
+        "  {}",
+        "Import DKEK shares before generating keys.".yellow()
+    );
 
     Ok(())
 }
@@ -420,9 +452,11 @@ fn run_init(
 fn run_keys(action: HsmKeyAction, device: Option<&str>) -> Result<()> {
     match action {
         HsmKeyAction::List => run_keys_list(device),
-        HsmKeyAction::Generate { key_type, label, key_id } => {
-            run_keys_generate(device, &key_type, &label, key_id)
-        }
+        HsmKeyAction::Generate {
+            key_type,
+            label,
+            key_id,
+        } => run_keys_generate(device, &key_type, &label, key_id),
         HsmKeyAction::Delete { key_id } => run_keys_delete(device, key_id),
         HsmKeyAction::Export { key_id, output } => run_keys_export(device, key_id, &output),
         HsmKeyAction::Import { input } => run_keys_import(device, &input),
@@ -472,7 +506,12 @@ fn run_keys_list(device: Option<&str>) -> Result<()> {
     Ok(())
 }
 
-fn run_keys_generate(device: Option<&str>, key_type: &str, label: &str, key_id: Option<u8>) -> Result<()> {
+fn run_keys_generate(
+    device: Option<&str>,
+    key_type: &str,
+    label: &str,
+    key_id: Option<u8>,
+) -> Result<()> {
     let transport = connect_hsm(device)?;
     verify_user_pin(&transport)?;
 
@@ -492,19 +531,27 @@ fn run_keys_generate(device: Option<&str>, key_type: &str, label: &str, key_id: 
     gen_data.push(algo_byte); // Skipped — use P2 for main algo
     gen_data.extend_from_slice(label_bytes);
 
-    let (resp_data, sw) = transport.transmit_apdu(0x00, INS_GENERATE_KEY, kid, algo_byte, &gen_data)?;
+    let (resp_data, sw) =
+        transport.transmit_apdu(0x00, INS_GENERATE_KEY, kid, algo_byte, &gen_data)?;
     if sw != SW_OK {
         bail!("key generation failed: SW={sw:04X}");
     }
 
-    let assigned_id = if !resp_data.is_empty() { resp_data[0] } else { kid };
+    let assigned_id = if !resp_data.is_empty() {
+        resp_data[0]
+    } else {
+        kid
+    };
     println!("{}", "✓ Key generated successfully".green().bold());
     println!("  Key ID: {assigned_id}");
     println!("  Type:   {type_family} {size_str}");
     println!("  Label:  {label}");
 
     if type_family == "RSA" {
-        println!("  {}", "(RSA key generation may take several seconds)".dimmed());
+        println!(
+            "  {}",
+            "(RSA key generation may take several seconds)".dimmed()
+        );
     }
 
     Ok(())
@@ -550,7 +597,11 @@ fn run_keys_export(device: Option<&str>, key_id: u8, output_path: &str) -> Resul
     std::fs::write(output_path, &wrapped_data)
         .with_context(|| format!("failed to write wrapped key to '{output_path}'"))?;
 
-    println!("{} key ID {key_id} exported to {}", "✓".green().bold(), output_path.bold());
+    println!(
+        "{} key ID {key_id} exported to {}",
+        "✓".green().bold(),
+        output_path.bold()
+    );
     println!("  Wrapped blob size: {} bytes", wrapped_data.len());
     Ok(())
 }
@@ -563,13 +614,22 @@ fn run_keys_import(device: Option<&str>, input_path: &str) -> Result<()> {
         .with_context(|| format!("failed to read wrapped key from '{input_path}'"))?;
 
     // UNWRAP KEY: INS=0x74, P1=0x00 (auto-assign), P2=0x93
-    let (resp_data, sw) = transport.transmit_apdu(0x00, INS_UNWRAP_KEY, 0x00, 0x93, &wrapped_data)?;
+    let (resp_data, sw) =
+        transport.transmit_apdu(0x00, INS_UNWRAP_KEY, 0x00, 0x93, &wrapped_data)?;
     if sw != SW_OK {
         bail!("key import failed: SW={sw:04X}");
     }
 
-    let assigned_id = if !resp_data.is_empty() { resp_data[0] } else { 0 };
-    println!("{} key imported from {} (assigned ID: {assigned_id})", "✓".green().bold(), input_path.bold());
+    let assigned_id = if !resp_data.is_empty() {
+        resp_data[0]
+    } else {
+        0
+    };
+    println!(
+        "{} key imported from {} (assigned ID: {assigned_id})",
+        "✓".green().bold(),
+        input_path.bold()
+    );
     Ok(())
 }
 
@@ -611,7 +671,8 @@ fn run_dkek_init(device: Option<&str>, shares: u8, threshold: u8) -> Result<()> 
         .interact()
         .context("failed to read SO-PIN")?;
 
-    let (_, sw) = transport.transmit_apdu(0x00, INS_VERIFY_PIN, 0x00, PIN_REF_SO, so_pin.as_bytes())?;
+    let (_, sw) =
+        transport.transmit_apdu(0x00, INS_VERIFY_PIN, 0x00, PIN_REF_SO, so_pin.as_bytes())?;
     if sw != SW_OK {
         bail!("SO-PIN verification failed: SW={sw:04X}");
     }
@@ -643,17 +704,29 @@ fn run_dkek_import_share(device: Option<&str>, file_path: &str) -> Result<()> {
         .with_context(|| format!("failed to read DKEK share from '{file_path}'"))?;
 
     if share_data.len() != 32 {
-        bail!("DKEK share must be exactly 32 bytes, got {}", share_data.len());
+        bail!(
+            "DKEK share must be exactly 32 bytes, got {}",
+            share_data.len()
+        );
     }
 
     // IMPORT DKEK SHARE: INS=0x52, P1=0x00, P2=0x00
-    let (resp_data, sw) = transport.transmit_apdu(0x80, INS_IMPORT_DKEK, 0x00, 0x01, &share_data)?;
+    let (resp_data, sw) =
+        transport.transmit_apdu(0x80, INS_IMPORT_DKEK, 0x00, 0x01, &share_data)?;
     if sw != SW_OK {
         bail!("DKEK share import failed: SW={sw:04X}");
     }
 
-    let remaining = if resp_data.len() >= 2 { resp_data[0] } else { 0 };
-    println!("{} DKEK share imported from {}", "✓".green().bold(), file_path.bold());
+    let remaining = if resp_data.len() >= 2 {
+        resp_data[0]
+    } else {
+        0
+    };
+    println!(
+        "{} DKEK share imported from {}",
+        "✓".green().bold(),
+        file_path.bold()
+    );
     if remaining > 0 {
         println!("  {} more share(s) required", remaining);
     } else {
@@ -677,7 +750,10 @@ fn run_dkek_status(device: Option<&str>) -> Result<()> {
         println!("  Shares imported: {}", data[1]);
         let remaining = data[0].saturating_sub(data[1]);
         if remaining > 0 {
-            println!("  Status: {} ({remaining} share(s) remaining)", "pending".yellow());
+            println!(
+                "  Status: {} ({remaining} share(s) remaining)",
+                "pending".yellow()
+            );
         } else {
             println!("  Status: {}", "active".green());
         }
@@ -705,7 +781,9 @@ fn run_sign(
     } else {
         use std::io::Read;
         let mut buf = Vec::new();
-        std::io::stdin().read_to_end(&mut buf).context("failed to read from stdin")?;
+        std::io::stdin()
+            .read_to_end(&mut buf)
+            .context("failed to read from stdin")?;
         buf
     };
 
@@ -722,7 +800,11 @@ fn run_sign(
     if let Some(out_path) = output {
         std::fs::write(out_path, &signature)
             .with_context(|| format!("failed to write signature to '{out_path}'"))?;
-        println!("{} signature written to {}", "✓".green().bold(), out_path.bold());
+        println!(
+            "{} signature written to {}",
+            "✓".green().bold(),
+            out_path.bold()
+        );
     } else {
         println!("{}", hex::encode(&signature));
     }
@@ -794,7 +876,11 @@ fn run_encrypt(
     std::fs::write(out_path, &ciphertext)
         .with_context(|| format!("failed to write ciphertext to '{out_path}'"))?;
 
-    println!("{} encrypted data written to {}", "✓".green().bold(), out_path.bold());
+    println!(
+        "{} encrypted data written to {}",
+        "✓".green().bold(),
+        out_path.bold()
+    );
     println!("  Input:  {} bytes", plaintext.len());
     println!("  Output: {} bytes", ciphertext.len());
     Ok(())
@@ -821,11 +907,17 @@ fn run_decrypt(
     if let Some(out_path) = output {
         std::fs::write(out_path, &plaintext)
             .with_context(|| format!("failed to write plaintext to '{out_path}'"))?;
-        println!("{} decrypted data written to {}", "✓".green().bold(), out_path.bold());
+        println!(
+            "{} decrypted data written to {}",
+            "✓".green().bold(),
+            out_path.bold()
+        );
     } else {
         // Write to stdout
         use std::io::Write;
-        std::io::stdout().write_all(&plaintext).context("failed to write to stdout")?;
+        std::io::stdout()
+            .write_all(&plaintext)
+            .context("failed to write to stdout")?;
     }
 
     println!("  Input:  {} bytes", ciphertext.len());

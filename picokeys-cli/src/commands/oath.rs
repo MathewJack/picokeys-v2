@@ -18,6 +18,7 @@ const OATH_INS_RESET: u8 = 0x04;
 const OATH_INS_LIST: u8 = 0xA1;
 const OATH_INS_CALCULATE: u8 = 0xA2;
 const OATH_INS_CALCULATE_ALL: u8 = 0xA4;
+#[allow(dead_code)]
 const OATH_INS_SEND_REMAINING: u8 = 0xA5;
 const OATH_INS_RENAME: u8 = 0x05; // PicoKeys extension
 
@@ -26,6 +27,7 @@ const OATH_TAG_NAME: u8 = 0x71;
 const OATH_TAG_KEY: u8 = 0x73;
 const OATH_TAG_CHALLENGE: u8 = 0x74;
 const OATH_TAG_RESPONSE: u8 = 0x75;
+#[allow(dead_code)]
 const OATH_TAG_PROPERTY: u8 = 0x78;
 const OATH_TAG_IMF: u8 = 0x7A;
 
@@ -361,7 +363,8 @@ fn execute_code_all() -> Result<()> {
     data.push(challenge.len() as u8);
     data.extend_from_slice(&challenge);
 
-    let (resp_data, sw) = transport.transmit_apdu(0x00, OATH_INS_CALCULATE_ALL, 0x00, 0x01, &data)?;
+    let (resp_data, sw) =
+        transport.transmit_apdu(0x00, OATH_INS_CALCULATE_ALL, 0x00, 0x01, &data)?;
 
     if sw != 0x9000 {
         bail!("OATH CALCULATE ALL failed: SW={sw:04X}");
@@ -502,10 +505,7 @@ fn execute_set_password() -> Result<()> {
         bail!("OATH SET CODE failed: SW={sw:04X}");
     }
 
-    println!(
-        "{} OATH password set successfully.",
-        "✓".green().bold()
-    );
+    println!("{} OATH password set successfully.", "✓".green().bold());
     Ok(())
 }
 
@@ -626,9 +626,14 @@ fn parse_oath_code(data: &[u8]) -> Result<String> {
         if (tag == 0x76 || tag == 0x75 || tag == 0x77) && value.len() >= 5 {
             let digits = value[0] as usize;
             let code_bytes = &value[1..5];
-            let code_num = u32::from_be_bytes([code_bytes[0], code_bytes[1], code_bytes[2], code_bytes[3]])
-                & 0x7FFFFFFF;
-            let code = format!("{:0>width$}", code_num % 10u32.pow(digits as u32), width = digits);
+            let code_num =
+                u32::from_be_bytes([code_bytes[0], code_bytes[1], code_bytes[2], code_bytes[3]])
+                    & 0x7FFFFFFF;
+            let code = format!(
+                "{:0>width$}",
+                code_num % 10u32.pow(digits as u32),
+                width = digits
+            );
             return Ok(code);
         }
     }
@@ -668,8 +673,8 @@ fn parse_oath_calculate_all(data: &[u8]) -> Result<Vec<(String, String)>> {
                 // Truncated/full response code.
                 if value.len() >= 5 {
                     let digits = value[0] as usize;
-                    let code_num = u32::from_be_bytes([value[1], value[2], value[3], value[4]])
-                        & 0x7FFFFFFF;
+                    let code_num =
+                        u32::from_be_bytes([value[1], value[2], value[3], value[4]]) & 0x7FFFFFFF;
                     let code = format!(
                         "{:0>width$}",
                         code_num % 10u32.pow(digits as u32),

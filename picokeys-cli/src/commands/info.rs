@@ -21,7 +21,12 @@ pub async fn run(device: Option<&str>) -> Result<()> {
     println!("{}\n", "PicoKeys Device Information".bold().cyan());
 
     let detected = DeviceDetector::find(device)?;
-    tracing::debug!("found device: {} ({:04X}:{:04X})", detected.name, detected.vid, detected.pid);
+    tracing::debug!(
+        "found device: {} ({:04X}:{:04X})",
+        detected.name,
+        detected.vid,
+        detected.pid
+    );
 
     let transport = HidTransport::open(detected.vid, detected.pid, detected.serial.as_deref())?;
 
@@ -35,7 +40,10 @@ pub async fn run(device: Option<&str>) -> Result<()> {
     // First byte is the CTAP2 status code.
     let status = response[0];
     if status != 0x00 {
-        bail!("CTAP2 GetInfo failed with status: 0x{status:02X} ({})", ctap2_status_name(status));
+        bail!(
+            "CTAP2 GetInfo failed with status: 0x{status:02X} ({})",
+            ctap2_status_name(status)
+        );
     }
 
     // Remaining bytes are CBOR-encoded GetInfo response.
@@ -128,7 +136,11 @@ pub async fn run(device: Option<&str>) -> Result<()> {
     let table = Table::new(rows).to_string();
     println!("{table}");
 
-    println!("\n{} {}", "✓".green().bold(), "Device information retrieved successfully.".green());
+    println!(
+        "\n{} {}",
+        "✓".green().bold(),
+        "Device information retrieved successfully.".green()
+    );
 
     Ok(())
 }
@@ -149,8 +161,8 @@ struct GetInfoResult {
 /// Parse CTAP2 authenticatorGetInfo CBOR response.
 /// The response is a CBOR map with integer keys (1..10+).
 fn parse_get_info(data: &[u8]) -> Result<GetInfoResult> {
-    let value: serde_cbor::Value =
-        serde_cbor::from_slice(data).map_err(|e| anyhow::anyhow!("failed to decode CBOR GetInfo: {e}"))?;
+    let value: serde_cbor::Value = serde_cbor::from_slice(data)
+        .map_err(|e| anyhow::anyhow!("failed to decode CBOR GetInfo: {e}"))?;
 
     let map = match &value {
         serde_cbor::Value::Map(m) => m,
@@ -306,25 +318,19 @@ fn ctap2_status_name(status: u8) -> &'static str {
         0x2E => "INVALID_CREDENTIAL",
         0x2F => "USER_ACTION_PENDING",
         0x30 => "OPERATION_PENDING",
-        0x31 => "NO_OPERATIONS",
-        0x32 => "UNSUPPORTED_ALGORITHM",
-        0x33 => "OPERATION_DENIED",
-        0x35 => "KEY_STORE_FULL",
-        0x36 => "NOT_BUSY",
-        0x38 => "NO_OPERATION_PENDING",
-        0x39 => "UNSUPPORTED_OPTION",
-        0x3A => "INVALID_OPTION",
-        0x3B => "KEEPALIVE_CANCEL",
-        0x3C => "NO_CREDENTIALS",
-        0x3D => "USER_ACTION_TIMEOUT",
-        0x3E => "NOT_ALLOWED",
         0x31 => "PIN_INVALID",
         0x32 => "PIN_BLOCKED",
         0x33 => "PIN_AUTH_INVALID",
         0x34 => "PIN_AUTH_BLOCKED",
+        0x35 => "KEY_STORE_FULL",
         0x36 => "PIN_NOT_SET",
         0x38 => "PIN_POLICY_VIOLATION",
+        0x39 => "UNSUPPORTED_OPTION",
         0x3A => "PIN_TOKEN_EXPIRED",
+        0x3B => "KEEPALIVE_CANCEL",
+        0x3C => "NO_CREDENTIALS",
+        0x3D => "USER_ACTION_TIMEOUT",
+        0x3E => "NOT_ALLOWED",
         0x7F => "SPEC_LAST",
         0xDF => "EXTENSION_FIRST",
         0xEF => "EXTENSION_LAST",

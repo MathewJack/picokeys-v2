@@ -1,9 +1,6 @@
 use anyhow::{bail, Context, Result};
 use pcsc::{Card, Context as PcscContext, Protocols, Scope, ShareMode};
 
-/// Known ATR prefixes for PicoKeys / compatible devices.
-const PICOKEYS_ATR_PREFIX: &[u8] = &[0x3B];
-
 /// SW success.
 const SW_OK: u16 = 0x9000;
 /// SW prefix indicating more data available (61xx).
@@ -56,10 +53,7 @@ impl CcidTransport {
             if let Some((reader_cstr, card)) = found {
                 let reader_name = reader_cstr.to_string_lossy().into_owned();
                 tracing::debug!("connected to reader: {reader_name}");
-                return Ok(Self {
-                    card,
-                    reader_name,
-                });
+                return Ok(Self { card, reader_name });
             }
             bail!("no smartcard reader with a card present found");
         };
@@ -90,7 +84,6 @@ impl CcidTransport {
             .card
             .status2(&mut reader_buf, &mut atr_buf)
             .context("failed to get card status")?;
-        let atr_len = status.atr().len();
         Ok(status.atr().to_vec())
     }
 
@@ -147,11 +140,7 @@ impl CcidTransport {
         let sw = ((resp[resp.len() - 2] as u16) << 8) | (resp[resp.len() - 1] as u16);
         let data = resp[..resp.len() - 2].to_vec();
 
-        tracing::trace!(
-            "APDU response: {} bytes, SW={:04X}",
-            data.len(),
-            sw
-        );
+        tracing::trace!("APDU response: {} bytes, SW={:04X}", data.len(), sw);
 
         Ok((data, sw))
     }

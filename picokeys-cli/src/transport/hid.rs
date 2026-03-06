@@ -57,9 +57,7 @@ impl HidTransport {
             .context("no matching FIDO HID device found")?;
 
         let path = device_info.path().to_owned();
-        let device = api
-            .open_path(&path)
-            .context("failed to open HID device")?;
+        let device = api.open_path(&path).context("failed to open HID device")?;
 
         let mut transport = Self {
             device,
@@ -97,7 +95,10 @@ impl HidTransport {
         self.channel_id = cid;
         tracing::debug!(
             "CTAPHID channel allocated: {:02X}{:02X}{:02X}{:02X}",
-            cid[0], cid[1], cid[2], cid[3]
+            cid[0],
+            cid[1],
+            cid[2],
+            cid[3]
         );
 
         Ok(())

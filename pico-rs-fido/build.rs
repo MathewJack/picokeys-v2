@@ -1,6 +1,9 @@
 fn main() {
     // Export firmware version as build-time constant
-    println!("cargo:rustc-env=FIRMWARE_VERSION={}", env!("CARGO_PKG_VERSION"));
+    println!(
+        "cargo:rustc-env=FIRMWARE_VERSION={}",
+        env!("CARGO_PKG_VERSION")
+    );
     println!("cargo:rustc-env=BUILD_DATE={}", chrono_lite_date());
 }
 

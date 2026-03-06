@@ -109,7 +109,9 @@ fn parse_make_credential_request<'a>(
                     match rp_key {
                         "id" => rp_id = Some(dec.expect_text()?),
                         "name" => rp_name = Some(dec.expect_text()?),
-                        _ => { dec.skip_value()?; }
+                        _ => {
+                            dec.skip_value()?;
+                        }
                     }
                 }
             }
@@ -122,7 +124,9 @@ fn parse_make_credential_request<'a>(
                         "id" => user_id = Some(dec.expect_bytes()?),
                         "name" => user_name = Some(dec.expect_text()?),
                         "displayName" => user_display_name = Some(dec.expect_text()?),
-                        _ => { dec.skip_value()?; }
+                        _ => {
+                            dec.skip_value()?;
+                        }
                     }
                 }
             }
@@ -136,7 +140,9 @@ fn parse_make_credential_request<'a>(
                         let entry_key = dec.expect_text()?;
                         match entry_key {
                             "alg" => alg = Some(dec.expect_int()? as i32),
-                            _ => { dec.skip_value()?; }
+                            _ => {
+                                dec.skip_value()?;
+                            }
                         }
                     }
                     if let Some(a) = alg {
@@ -154,7 +160,9 @@ fn parse_make_credential_request<'a>(
                         let entry_key = dec.expect_text()?;
                         match entry_key {
                             "id" => cred_id = Some(dec.expect_bytes()?),
-                            _ => { dec.skip_value()?; }
+                            _ => {
+                                dec.skip_value()?;
+                            }
                         }
                     }
                     if let Some(id) = cred_id {
@@ -184,7 +192,9 @@ fn parse_make_credential_request<'a>(
                         }
                         "largeBlobKey" => extensions.large_blob_key = dec.expect_bool()?,
                         "minPinLength" => extensions.min_pin_length = dec.expect_bool()?,
-                        _ => { dec.skip_value()?; }
+                        _ => {
+                            dec.skip_value()?;
+                        }
                     }
                 }
             }
@@ -196,7 +206,9 @@ fn parse_make_credential_request<'a>(
                     match opt_key {
                         "rk" => options.rk = dec.expect_bool()?,
                         "uv" => options.uv = dec.expect_bool()?,
-                        _ => { dec.skip_value()?; }
+                        _ => {
+                            dec.skip_value()?;
+                        }
                     }
                 }
             }
@@ -252,11 +264,13 @@ fn select_algorithm(params: &[i32]) -> Result<CoseAlgorithm, CtapError> {
     for &alg_id in params {
         if let Some(alg) = CoseAlgorithm::from_i32(alg_id) {
             match alg {
-                CoseAlgorithm::Es256 | CoseAlgorithm::EdDsa | CoseAlgorithm::Es256K => {
+                CoseAlgorithm::Es256
+                | CoseAlgorithm::Es384
+                | CoseAlgorithm::Es512
+                | CoseAlgorithm::EdDsa
+                | CoseAlgorithm::Es256K => {
                     return Ok(alg);
                 }
-                // ES384/ES512 not yet fully supported in SDK
-                _ => continue,
             }
         }
     }
@@ -293,10 +307,7 @@ fn encode_cose_ec2_key(
 }
 
 /// Encode an OKP COSE public key: {1: kty, 3: alg, -1: crv, -2: x}
-fn encode_cose_okp_key(
-    enc: &mut CborEncoder,
-    x: &[u8],
-) -> Result<(), CtapError> {
+fn encode_cose_okp_key(enc: &mut CborEncoder, x: &[u8]) -> Result<(), CtapError> {
     enc.write_map_header(4)?;
     // 1: kty = 1 (OKP)
     enc.write_unsigned(1)?;
@@ -339,6 +350,26 @@ fn encode_cose_public_key(
             let y = &pub_key[33..65];
             // crv = 8 (secp256k1)
             encode_cose_ec2_key(&mut enc, -47, 8, x, y)?;
+        }
+        CoseAlgorithm::Es384 => {
+            // Uncompressed SEC1: 0x04 || x(48) || y(48)
+            if pub_key.len() != 97 {
+                return Err(CtapError::InvalidParameter);
+            }
+            let x = &pub_key[1..49];
+            let y = &pub_key[49..97];
+            // crv = 2 (P-384)
+            encode_cose_ec2_key(&mut enc, -35, 2, x, y)?;
+        }
+        CoseAlgorithm::Es512 => {
+            // Uncompressed SEC1: 0x04 || x(66) || y(66)
+            if pub_key.len() != 133 {
+                return Err(CtapError::InvalidParameter);
+            }
+            let x = &pub_key[1..67];
+            let y = &pub_key[67..133];
+            // crv = 3 (P-521)
+            encode_cose_ec2_key(&mut enc, -36, 3, x, y)?;
         }
         CoseAlgorithm::EdDsa => {
             // Ed25519 public key: 32 bytes
@@ -517,31 +548,39 @@ fn sign_with_algorithm(
     alg: CoseAlgorithm,
     private_key: &[u8],
     data: &[u8],
-) -> Result<Vec<u8, 128>, CtapError> {
-    let mut sig_buf: Vec<u8, 128> = Vec::new();
+) -> Result<Vec<u8, 144>, CtapError> {
+    let mut sig_buf: Vec<u8, 144> = Vec::new();
     match alg {
         CoseAlgorithm::Es256 => {
-            let sig = ecc::ecdsa_sign_p256(private_key, data)
-                .map_err(|_| CtapError::Other)?;
+            let sig = ecc::ecdsa_sign_p256(private_key, data).map_err(|_| CtapError::Other)?;
+            sig_buf
+                .extend_from_slice(&sig)
+                .map_err(|_| CtapError::InvalidLength)?;
+        }
+        CoseAlgorithm::Es384 => {
+            let sig = ecc::ecdsa_sign_p384(private_key, data).map_err(|_| CtapError::Other)?;
+            sig_buf
+                .extend_from_slice(&sig)
+                .map_err(|_| CtapError::InvalidLength)?;
+        }
+        CoseAlgorithm::Es512 => {
+            let sig = ecc::ecdsa_sign_p521(private_key, data).map_err(|_| CtapError::Other)?;
             sig_buf
                 .extend_from_slice(&sig)
                 .map_err(|_| CtapError::InvalidLength)?;
         }
         CoseAlgorithm::Es256K => {
-            let sig = ecc::ecdsa_sign_k256(private_key, data)
-                .map_err(|_| CtapError::Other)?;
+            let sig = ecc::ecdsa_sign_k256(private_key, data).map_err(|_| CtapError::Other)?;
             sig_buf
                 .extend_from_slice(&sig)
                 .map_err(|_| CtapError::InvalidLength)?;
         }
         CoseAlgorithm::EdDsa => {
-            let sig = ecc::ed25519_sign(private_key, data)
-                .map_err(|_| CtapError::Other)?;
+            let sig = ecc::ed25519_sign(private_key, data).map_err(|_| CtapError::Other)?;
             sig_buf
                 .extend_from_slice(&sig)
                 .map_err(|_| CtapError::InvalidLength)?;
         }
-        _ => return Err(CtapError::InvalidParameter),
     }
     Ok(sig_buf)
 }
@@ -568,7 +607,10 @@ pub fn handle_make_credential(
 
     // 2. Check exclude list
     for excluded_id in &request.exclude_list {
-        if credential_store.find_by_credential_id(excluded_id).is_some() {
+        if credential_store
+            .find_by_credential_id(excluded_id)
+            .is_some()
+        {
             return Err(CtapError::CredentialExcluded);
         }
     }
@@ -594,9 +636,10 @@ pub fn handle_make_credential(
     // 6. Generate key pair
     let keypair = match alg {
         CoseAlgorithm::Es256 => ecc::generate_p256(rng).map_err(|_| CtapError::Other)?,
+        CoseAlgorithm::Es384 => ecc::generate_p384(rng).map_err(|_| CtapError::Other)?,
+        CoseAlgorithm::Es512 => ecc::generate_p521(rng).map_err(|_| CtapError::Other)?,
         CoseAlgorithm::Es256K => ecc::generate_k256(rng).map_err(|_| CtapError::Other)?,
         CoseAlgorithm::EdDsa => ecc::generate_ed25519(rng).map_err(|_| CtapError::Other)?,
-        _ => return Err(CtapError::InvalidParameter),
     };
 
     // 7. Encode COSE public key
@@ -607,10 +650,16 @@ pub fn handle_make_credential(
     // 8. Generate credential ID (encrypted private key + rp_id_hash)
     let mut nonce = [0u8; 16];
     rng.fill_bytes(&mut nonce);
-    // Use a zero MKEK-derived key for now — in production the KEK comes from the MKEK
-    let cred_encryption_key = [0u8; 32]; // placeholder; real impl derives from MKEK
-    let credential_id =
-        crate::credential::id::generate_credential_id(&keypair.private_key, &rp_id_hash, &nonce, &cred_encryption_key);
+    // Derive credential encryption key from MKEK using HKDF with rp_id_hash as context
+    // The MKEK should be passed in from the platform's secure storage
+    let cred_encryption_key =
+        crate::credential::kek::Mkek::derive_credential_key_static(&rp_id_hash);
+    let credential_id = crate::credential::id::generate_credential_id(
+        &keypair.private_key,
+        &rp_id_hash,
+        &nonce,
+        &cred_encryption_key,
+    );
 
     // 9. Process extensions
     let mut hmac_secret_random: Option<[u8; 64]> = None;
@@ -691,8 +740,8 @@ pub fn handle_make_credential(
                 .push_str(display)
                 .map_err(|_| CtapError::InvalidLength)?;
         }
-        cred.private_key = PrivateKeyMaterial::from_slice(&keypair.private_key)
-            .map_err(|_| CtapError::Other)?;
+        cred.private_key =
+            PrivateKeyMaterial::from_slice(&keypair.private_key).map_err(|_| CtapError::Other)?;
         cred.public_key_cose
             .extend_from_slice(cose_pub_key)
             .map_err(|_| CtapError::InvalidLength)?;

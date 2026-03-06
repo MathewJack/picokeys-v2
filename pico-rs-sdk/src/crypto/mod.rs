@@ -205,6 +205,7 @@ impl<R: RngSource> CryptoBackend for SoftwareCryptoBackend<R> {
         match curve {
             EcCurve::P256 => ecc::generate_p256(&mut self.rng),
             EcCurve::P384 => ecc::generate_p384(&mut self.rng),
+            EcCurve::P521 => ecc::generate_p521(&mut self.rng),
             EcCurve::Secp256k1 => ecc::generate_k256(&mut self.rng),
             EcCurve::Ed25519 => ecc::generate_ed25519(&mut self.rng),
             EcCurve::X25519 => ecc::generate_x25519(&mut self.rng),
@@ -227,6 +228,11 @@ impl<R: RngSource> CryptoBackend for SoftwareCryptoBackend<R> {
             }
             EcCurve::P384 => {
                 let sig = ecc::ecdsa_sign_p384(private_key, message)?;
+                out.extend_from_slice(&sig)
+                    .map_err(|_| CryptoError::BufferTooSmall)?;
+            }
+            EcCurve::P521 => {
+                let sig = ecc::ecdsa_sign_p521(private_key, message)?;
                 out.extend_from_slice(&sig)
                     .map_err(|_| CryptoError::BufferTooSmall)?;
             }
@@ -255,6 +261,7 @@ impl<R: RngSource> CryptoBackend for SoftwareCryptoBackend<R> {
         match curve {
             EcCurve::P256 => ecc::ecdsa_verify_p256(public_key, message, signature),
             EcCurve::P384 => ecc::ecdsa_verify_p384(public_key, message, signature),
+            EcCurve::P521 => ecc::ecdsa_verify_p521(public_key, message, signature),
             EcCurve::Secp256k1 => ecc::ecdsa_verify_k256(public_key, message, signature),
             EcCurve::Ed25519 => ecc::ed25519_verify(public_key, message, signature),
             _ => Err(CryptoError::UnsupportedAlgorithm),
@@ -276,6 +283,11 @@ impl<R: RngSource> CryptoBackend for SoftwareCryptoBackend<R> {
             }
             EcCurve::P384 => {
                 let s = ecc::ecdh_p384(private_key, peer_public_key)?;
+                out.extend_from_slice(&s)
+                    .map_err(|_| CryptoError::BufferTooSmall)?;
+            }
+            EcCurve::P521 => {
+                let s = ecc::ecdh_p521(private_key, peer_public_key)?;
                 out.extend_from_slice(&s)
                     .map_err(|_| CryptoError::BufferTooSmall)?;
             }

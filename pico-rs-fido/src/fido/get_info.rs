@@ -9,6 +9,9 @@ use super::FidoConfig;
 /// COSE algorithm identifiers for supported public-key types.
 const COSE_ALG_ES256: i32 = -7;
 const COSE_ALG_EDDSA: i32 = -8;
+const COSE_ALG_ES384: i32 = -35;
+const COSE_ALG_ES512: i32 = -36;
+const COSE_ALG_ES256K: i32 = -47;
 
 /// Complete GetInfo response, ready to be CBOR-encoded.
 #[derive(Debug, Clone, defmt::Format)]
@@ -103,10 +106,12 @@ impl GetInfoResponse {
 
         // 0x0A — algorithms
         w.write_uint(0x0A)?;
-        w.write_array_header(2)?;
-        // Each entry: {"type": "public-key", "alg": <cose_id>}
+        w.write_array_header(5)?;
         Self::write_algorithm_entry(&mut w, COSE_ALG_ES256)?;
+        Self::write_algorithm_entry(&mut w, COSE_ALG_ES384)?;
+        Self::write_algorithm_entry(&mut w, COSE_ALG_ES512)?;
         Self::write_algorithm_entry(&mut w, COSE_ALG_EDDSA)?;
+        Self::write_algorithm_entry(&mut w, COSE_ALG_ES256K)?;
 
         // 0x0E — firmwareVersion
         w.write_uint(0x0E)?;
@@ -115,10 +120,7 @@ impl GetInfoResponse {
         Ok(w.pos)
     }
 
-    fn write_algorithm_entry(
-        w: &mut CborWriter<'_>,
-        alg: i32,
-    ) -> Result<(), CtapError> {
+    fn write_algorithm_entry(w: &mut CborWriter<'_>, alg: i32) -> Result<(), CtapError> {
         w.write_map_header(2)?;
         w.write_text("type")?;
         w.write_text("public-key")?;
@@ -208,11 +210,7 @@ impl<'a> CborWriter<'a> {
     }
 
     /// Write major-type header with argument encoding.
-    fn write_type_and_value(
-        &mut self,
-        major: u8,
-        value: u64,
-    ) -> Result<(), CtapError> {
+    fn write_type_and_value(&mut self, major: u8, value: u64) -> Result<(), CtapError> {
         let mt = major << 5;
         if value < 24 {
             self.push(mt | value as u8)

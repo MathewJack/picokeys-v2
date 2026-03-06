@@ -14,7 +14,9 @@ pub struct SoftwareRng {
 
 impl SoftwareRng {
     pub fn new(seed: u64) -> Self {
-        Self { state: if seed == 0 { 1 } else { seed } }
+        Self {
+            state: if seed == 0 { 1 } else { seed },
+        }
     }
 }
 

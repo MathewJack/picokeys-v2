@@ -20,8 +20,8 @@ pico-rs-sdk = { path = "../pico-rs-sdk" }
 # Crypto
 rsa = { version = "0.9", default-features = false }
 p256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-p384 = { version = "0.13", default-features = false, features = ["ecdsa"] }
-p521 = { version = "0.13", default-features = false }
+p384 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
+p521 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
 k256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
 ed25519-dalek = { version = "2.1", default-features = false }
 x25519-dalek = { version = "2.0", default-features = false }

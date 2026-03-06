@@ -43,12 +43,18 @@ pub fn hmac_sha256_verify(key: &[u8], data: &[u8], expected: &[u8]) -> bool {
 }
 
 /// HKDF-SHA256 key derivation (RFC 5869).
-pub fn hkdf_sha256(ikm: &[u8], salt: &[u8], info: &[u8], output: &mut [u8]) -> Result<(), CryptoError> {
+pub fn hkdf_sha256(
+    ikm: &[u8],
+    salt: &[u8],
+    info: &[u8],
+    output: &mut [u8],
+) -> Result<(), CryptoError> {
     use hkdf::Hkdf;
     use sha2::Sha256;
 
     let hk = Hkdf::<Sha256>::new(Some(salt), ikm);
-    hk.expand(info, output).map_err(|_| CryptoError::InvalidLength)
+    hk.expand(info, output)
+        .map_err(|_| CryptoError::InvalidLength)
 }
 
 /// PBKDF2-HMAC-SHA256 key derivation.
@@ -58,8 +64,8 @@ pub fn pbkdf2_sha256(password: &[u8], salt: &[u8], iterations: u32, output: &mut
 
 /// AES-CMAC (128-bit key, 128-bit output).
 pub fn aes_cmac(key: &[u8; 16], data: &[u8]) -> [u8; 16] {
-    use cmac::{Cmac, Mac};
     use aes::Aes128;
+    use cmac::{Cmac, Mac};
 
     let mut mac = <Cmac<Aes128> as Mac>::new_from_slice(key).expect("valid key length");
     mac.update(data);

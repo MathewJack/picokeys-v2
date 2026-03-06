@@ -1,3 +1,46 @@
+//! # PicoKeys CLI
+//!
+//! Host-side management tool for PicoKeys v2 security keys.
+//!
+//! ## Overview
+//!
+//! `picokeys-cli` is a command-line tool (similar to `ykman`) for managing
+//! PicoKeys v2 devices. It communicates via USB HID (CTAPHID) and CCID
+//! (PC/SC) transports.
+//!
+//! ## Commands
+//!
+//! | Command | Description |
+//! |---------|-------------|
+//! | `info` | Display device info (firmware, serial, capabilities) |
+//! | `fido` | FIDO2 credential management, PIN, reset, config |
+//! | `oath` | OATH TOTP/HOTP management (list, add, generate codes) |
+//! | `otp` | YubiKey OTP slot management |
+//! | `hsm` | HSM key management, signing, encryption |
+//! | `config` | Device configuration (LED, button, USB) |
+//! | `firmware` | Firmware update and OTP provisioning |
+//!
+//! ## Usage
+//!
+//! ```bash
+//! # Show device info
+//! picokeys-cli info
+//!
+//! # List FIDO2 credentials
+//! picokeys-cli fido credentials list
+//!
+//! # Generate OATH TOTP code
+//! picokeys-cli oath code GitHub
+//!
+//! # HSM key generation
+//! picokeys-cli hsm keys generate --type ec-p256 --label mykey
+//! ```
+//!
+//! ## Transport Auto-Detection
+//!
+//! The CLI automatically detects connected devices via HID or CCID.
+//! Use `--device <SERIAL>` to target a specific device when multiple are connected.
+
 use anyhow::Result;
 use clap::Parser;
 use colored::Colorize;

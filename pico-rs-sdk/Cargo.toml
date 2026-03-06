@@ -35,7 +35,7 @@ iso7816 = "0.1"
 # Crypto
 p256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
 p384 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-p521 = { version = "0.13", default-features = false }
+p521 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
 k256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
 ed25519-dalek = { version = "2.1", default-features = false, features = ["rand_core", "zeroize"] }
 x25519-dalek = { version = "2.0", default-features = false, features = ["static_secrets", "zeroize"] }

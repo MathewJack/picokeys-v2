@@ -69,7 +69,10 @@ pub fn decode_der_sequence(input: &[u8]) -> Result<(&[u8], &[u8]), CryptoError> 
     }
 
     let content_start = 1 + header_len;
-    Ok((&input[content_start..content_start + content_len], &input[total..]))
+    Ok((
+        &input[content_start..content_start + content_len],
+        &input[total..],
+    ))
 }
 
 /// Decode a DER length field. Returns (length_value, bytes_consumed).

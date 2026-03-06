@@ -1,0 +1,25 @@
+/target
+**/*.rs.bk
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Cargo lock for libraries (keep for binary)
+# Cargo.lock is checked in for workspace
+
+# Build artifacts
+*.uf2
+*.bin
+*.elf
+*.hex
+
+# Fuzz corpus
+fuzz/corpus/
+fuzz/artifacts/

@@ -1,8 +1,8 @@
 //! Chip Authentication (CA) protocol using ECDH on P-256.
 
-use p256::{EncodedPoint, PublicKey, SecretKey};
 use p256::ecdh::diffie_hellman;
-use sha2::{Sha256, Digest};
+use p256::{EncodedPoint, PublicKey, SecretKey};
+use sha2::{Digest, Sha256};
 use zeroize::Zeroize;
 
 /// Chip Authentication using ECDH on NIST P-256.
@@ -55,8 +55,7 @@ impl ChipAuthentication {
         // Parse terminal's public key
         let terminal_point =
             EncodedPoint::from_bytes(terminal_public_key).map_err(|_| 0x6A80u16)?;
-        let terminal_pk =
-            PublicKey::from_encoded_point(&terminal_point).map_err(|_| 0x6A80u16)?;
+        let terminal_pk = PublicKey::from_encoded_point(&terminal_point).map_err(|_| 0x6A80u16)?;
 
         // Parse device's private key
         let sk = SecretKey::from_bytes(device_private.into()).map_err(|_| 0x6985u16)?;

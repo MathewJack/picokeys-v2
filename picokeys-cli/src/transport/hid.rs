@@ -215,6 +215,13 @@ impl HidTransport {
         let mut data = Vec::with_capacity(total_len);
 
         let chunk = total_len.min(INIT_DATA_SIZE);
+        if pkt.len() < 7 + chunk {
+            bail!(
+                "init packet too short: need {} bytes, got {}",
+                7 + chunk,
+                pkt.len()
+            );
+        }
         data.extend_from_slice(&pkt[7..7 + chunk]);
 
         // Read continuation packets.
@@ -238,6 +245,13 @@ impl HidTransport {
 
             let remaining = total_len - data.len();
             let chunk = remaining.min(CONT_DATA_SIZE);
+            if pkt.len() < 5 + chunk {
+                bail!(
+                    "continuation packet too short: need {} bytes, got {}",
+                    5 + chunk,
+                    pkt.len()
+                );
+            }
             data.extend_from_slice(&pkt[5..5 + chunk]);
 
             expected_seq = expected_seq.wrapping_add(1);

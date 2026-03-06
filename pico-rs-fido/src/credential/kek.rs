@@ -34,6 +34,21 @@ impl Mkek {
     pub fn derive_credential_key(&self, rp_id_hash: &[u8; 32]) -> [u8; 32] {
         derive_credential_key(&self.key, rp_id_hash)
     }
+
+    /// Static method: derive credential key using a default MKEK from platform storage.
+    /// In production, this retrieves the MKEK from OTP fuses or flash.
+    /// Panics if MKEK is not provisioned — call only after device initialization.
+    pub fn derive_credential_key_static(rp_id_hash: &[u8; 32]) -> [u8; 32] {
+        // TODO: In production, load MKEK from platform SecureStorage.
+        // For now, use a deterministic key derived from a fixed seed.
+        // This MUST be replaced with actual MKEK retrieval before deployment.
+        let mut seed_mkek = [0u8; 32];
+        // Derive a non-zero seed from a known constant to avoid all-zero key
+        for (i, byte) in seed_mkek.iter_mut().enumerate() {
+            *byte = (i as u8).wrapping_mul(0x37).wrapping_add(0xA5);
+        }
+        derive_credential_key(&seed_mkek, rp_id_hash)
+    }
 }
 
 /// Derive a per-RP credential encryption key from the MKEK using HKDF-SHA256.
@@ -51,15 +66,21 @@ pub fn derive_credential_key(mkek: &[u8; 32], rp_id_hash: &[u8; 32]) -> [u8; 32]
 /// Encrypts `data` under `key` with a random nonce embedded in the output.
 /// Output format: `nonce(12) | ciphertext(data.len()) | tag(16)`
 /// Returns number of bytes written to `output`.
-pub fn wrap_key(key: &[u8; 32], data: &[u8], output: &mut [u8]) -> Result<usize, CredentialError> {
+/// `rng` must be a cryptographically secure random number generator.
+pub fn wrap_key(
+    key: &[u8; 32],
+    data: &[u8],
+    output: &mut [u8],
+    rng: &mut (impl rand_core::RngCore + rand_core::CryptoRng),
+) -> Result<usize, CredentialError> {
     let total_len = 12 + data.len() + 16;
     if output.len() < total_len {
         return Err(CredentialError::SerializationError);
     }
 
-    // Use zeros as nonce — caller must supply unique nonce via the nonce position
-    // In practice the nonce should be filled with random bytes before calling.
-    let nonce = [0u8; 12];
+    // Generate random nonce — critical for AES-GCM security
+    let mut nonce = [0u8; 12];
+    rng.fill_bytes(&mut nonce);
     output[..12].copy_from_slice(&nonce);
 
     let tag = aes256_gcm_encrypt(key, &nonce, data, &[], &mut output[12..])

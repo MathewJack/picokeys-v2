@@ -11,7 +11,7 @@ pub fn aes256_gcm_encrypt(
     aad: &[u8],
     output: &mut [u8],
 ) -> Result<[u8; 16], CryptoError> {
-    use aes_gcm::{Aes256Gcm, KeyInit, AeadInPlace, Nonce};
+    use aes_gcm::{AeadInPlace, Aes256Gcm, KeyInit, Nonce};
 
     if output.len() < plaintext.len() {
         return Err(CryptoError::BufferTooSmall);
@@ -39,7 +39,7 @@ pub fn aes256_gcm_decrypt(
     tag: &[u8; 16],
     output: &mut [u8],
 ) -> Result<(), CryptoError> {
-    use aes_gcm::{Aes256Gcm, KeyInit, AeadInPlace, Nonce, Tag};
+    use aes_gcm::{AeadInPlace, Aes256Gcm, KeyInit, Nonce, Tag};
 
     if output.len() < ciphertext.len() {
         return Err(CryptoError::BufferTooSmall);
@@ -64,7 +64,7 @@ pub fn aes256_cbc_encrypt(
     output: &mut [u8],
 ) -> Result<usize, CryptoError> {
     use aes::Aes256;
-    use cbc::cipher::{BlockEncryptMut, KeyIvInit, block_padding::Pkcs7};
+    use cbc::cipher::{block_padding::Pkcs7, BlockEncryptMut, KeyIvInit};
 
     type Aes256CbcEnc = cbc::Encryptor<Aes256>;
 
@@ -89,7 +89,7 @@ pub fn aes256_cbc_decrypt(
     output: &mut [u8],
 ) -> Result<usize, CryptoError> {
     use aes::Aes256;
-    use cbc::cipher::{BlockDecryptMut, KeyIvInit, block_padding::Pkcs7};
+    use cbc::cipher::{block_padding::Pkcs7, BlockDecryptMut, KeyIvInit};
 
     type Aes256CbcDec = cbc::Decryptor<Aes256>;
 
@@ -112,7 +112,7 @@ pub fn aes128_cbc_encrypt_no_pad(
     data: &mut [u8],
 ) -> Result<(), CryptoError> {
     use aes::Aes128;
-    use cbc::cipher::{BlockEncryptMut, KeyIvInit, block_padding::NoPadding};
+    use cbc::cipher::{block_padding::NoPadding, BlockEncryptMut, KeyIvInit};
 
     type Aes128CbcEnc = cbc::Encryptor<Aes128>;
 

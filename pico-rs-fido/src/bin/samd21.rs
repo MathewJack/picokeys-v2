@@ -126,7 +126,10 @@ impl CommandHandler for FidoHandler {
     ) -> Result<(), pico_rs_sdk::transport::TransportError> {
         let mut buf = [0u8; 7609];
         let now_ms = embassy_time::Instant::now().as_millis();
-        match self.fido.process_ctaphid_cbor(data, &mut buf, now_ms, self.button_pressed) {
+        match self
+            .fido
+            .process_ctaphid_cbor(data, &mut buf, now_ms, self.button_pressed)
+        {
             Ok(n) => {
                 let _ = response.extend_from_slice(&buf[..n]);
                 Ok(())
@@ -197,7 +200,11 @@ async fn main(spawner: Spawner) {
 
     // 2. Flash storage: last 32 KB of 256 KB
     // SAMD21 NVM is accessed via atsamd-hal's NVM controller.
-    defmt::info!("Flash storage: {}KB at offset {:#X}", STORAGE_SIZE / 1024, STORAGE_OFFSET);
+    defmt::info!(
+        "Flash storage: {}KB at offset {:#X}",
+        STORAGE_SIZE / 1024,
+        STORAGE_OFFSET
+    );
 
     // 3. TRNG: SAMD21 has no dedicated TRNG.
     // Use ADC noise sampling or require external entropy seed.

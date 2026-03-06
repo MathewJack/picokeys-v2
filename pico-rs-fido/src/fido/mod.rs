@@ -166,21 +166,13 @@ impl FidoApp {
                 Err(CtapError::InvalidCommand)
             }
 
-            CtapCommand::LargeBlobs => {
-                self.handle_large_blobs(payload, response)
-            }
+            CtapCommand::LargeBlobs => self.handle_large_blobs(payload, response),
 
-            CtapCommand::Config => {
-                self.handle_config(payload, response)
-            }
+            CtapCommand::Config => self.handle_config(payload, response),
 
-            CtapCommand::BioEnrollment => {
-                Err(CtapError::InvalidCommand)
-            }
+            CtapCommand::BioEnrollment => Err(CtapError::InvalidCommand),
 
-            CtapCommand::VendorFirst => {
-                self.handle_vendor_dispatch(payload, response)
-            }
+            CtapCommand::VendorFirst => self.handle_vendor_dispatch(payload, response),
         }
     }
 
@@ -201,10 +193,8 @@ impl FidoApp {
                 if payload.len() < 5 {
                     return Err(CtapError::InvalidLength);
                 }
-                let offset =
-                    u16::from_le_bytes([payload[1], payload[2]]) as usize;
-                let length =
-                    u16::from_le_bytes([payload[3], payload[4]]) as usize;
+                let offset = u16::from_le_bytes([payload[1], payload[2]]) as usize;
+                let length = u16::from_le_bytes([payload[3], payload[4]]) as usize;
                 let data = self.large_blobs.read(offset, length)?;
                 if response.len() < 1 + data.len() {
                     return Err(CtapError::InvalidLength);
@@ -218,8 +208,7 @@ impl FidoApp {
                 if payload.len() < 3 {
                     return Err(CtapError::InvalidLength);
                 }
-                let offset =
-                    u16::from_le_bytes([payload[1], payload[2]]) as usize;
+                let offset = u16::from_le_bytes([payload[1], payload[2]]) as usize;
                 let data = &payload[3..];
                 self.large_blobs.write(offset, data)?;
                 if response.is_empty() {
@@ -232,11 +221,7 @@ impl FidoApp {
         }
     }
 
-    fn handle_config(
-        &mut self,
-        payload: &[u8],
-        response: &mut [u8],
-    ) -> Result<usize, CtapError> {
+    fn handle_config(&mut self, payload: &[u8], response: &mut [u8]) -> Result<usize, CtapError> {
         // Payload format:
         //   [sub_command: u8]
         //   [pin_protocol: u8][pin_auth: 16 bytes]   ← present when PIN is set
@@ -261,12 +246,7 @@ impl FidoApp {
             let plen = params.len().min(255);
             msg[1..1 + plen].copy_from_slice(&params[..plen]);
 
-            if !client_pin::verify_pin_auth(
-                pin_protocol,
-                token,
-                &msg[..1 + plen],
-                pin_auth,
-            ) {
+            if !client_pin::verify_pin_auth(pin_protocol, token, &msg[..1 + plen], pin_auth) {
                 return Err(CtapError::PinAuthInvalid);
             }
             params
@@ -316,12 +296,7 @@ impl FidoApp {
                 let dlen = data.len().min(255);
                 msg[1..1 + dlen].copy_from_slice(&data[..dlen]);
 
-                if !client_pin::verify_pin_auth(
-                    pin_protocol,
-                    token,
-                    &msg[..1 + dlen],
-                    pin_auth,
-                ) {
+                if !client_pin::verify_pin_auth(pin_protocol, token, &msg[..1 + dlen], pin_auth) {
                     return Err(CtapError::PinAuthInvalid);
                 }
                 data
@@ -337,12 +312,8 @@ impl FidoApp {
             return Err(CtapError::InvalidLength);
         }
         response[0] = CtapError::Ok as u8;
-        let (n, effects) = vendor::handle_vendor(
-            vcmd,
-            cmd_data,
-            &mut self.device_config,
-            &mut response[1..],
-        )?;
+        let (n, effects) =
+            vendor::handle_vendor(vcmd, cmd_data, &mut self.device_config, &mut response[1..])?;
 
         // Apply side effects.
         if effects.aaguid_updated {

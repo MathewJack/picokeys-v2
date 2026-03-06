@@ -15,10 +15,7 @@ const RESET_WINDOW_MS: u64 = 10_000;
 ///
 /// Actual credential/PIN wipe is performed by the caller (`FidoApp`) after
 /// this function returns `Ok(())`.
-pub fn handle_reset(
-    button_pressed: bool,
-    elapsed_since_boot_ms: u64,
-) -> Result<(), CtapError> {
+pub fn handle_reset(button_pressed: bool, elapsed_since_boot_ms: u64) -> Result<(), CtapError> {
     if elapsed_since_boot_ms > RESET_WINDOW_MS {
         return Err(CtapError::NotAllowed);
     }

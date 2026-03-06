@@ -71,7 +71,10 @@ fn parse_get_assertion_request<'a>(data: &'a [u8]) -> Result<GetAssertionRequest
     let mut client_data_hash: Option<&[u8]> = None;
     let mut allow_list: Vec<&[u8], 8> = Vec::new();
     let mut extensions = GetAssertionExtensions::default();
-    let mut options = GetAssertionOptions { up: true, uv: false };
+    let mut options = GetAssertionOptions {
+        up: true,
+        uv: false,
+    };
     let mut pin_uv_auth_param: Option<&[u8]> = None;
     let mut pin_uv_auth_protocol: Option<u8> = None;
 
@@ -96,7 +99,9 @@ fn parse_get_assertion_request<'a>(data: &'a [u8]) -> Result<GetAssertionRequest
                         let entry_key = dec.expect_text()?;
                         match entry_key {
                             "id" => cred_id = Some(dec.expect_bytes()?),
-                            _ => { dec.skip_value()?; }
+                            _ => {
+                                dec.skip_value()?;
+                            }
                         }
                     }
                     if let Some(id) = cred_id {
@@ -128,7 +133,9 @@ fn parse_get_assertion_request<'a>(data: &'a [u8]) -> Result<GetAssertionRequest
                                     }
                                     0x02 => salt_enc = Some(dec.expect_bytes()?),
                                     0x03 => salt_auth = Some(dec.expect_bytes()?),
-                                    _ => { dec.skip_value()?; }
+                                    _ => {
+                                        dec.skip_value()?;
+                                    }
                                 }
                             }
                             if let (Some(ka), Some(se), Some(sa)) =
@@ -141,7 +148,9 @@ fn parse_get_assertion_request<'a>(data: &'a [u8]) -> Result<GetAssertionRequest
                                 });
                             }
                         }
-                        _ => { dec.skip_value()?; }
+                        _ => {
+                            dec.skip_value()?;
+                        }
                     }
                 }
             }
@@ -153,7 +162,9 @@ fn parse_get_assertion_request<'a>(data: &'a [u8]) -> Result<GetAssertionRequest
                     match opt_key {
                         "up" => options.up = dec.expect_bool()?,
                         "uv" => options.uv = dec.expect_bool()?,
-                        _ => { dec.skip_value()?; }
+                        _ => {
+                            dec.skip_value()?;
+                        }
                     }
                 }
             }
@@ -265,7 +276,7 @@ fn sign_assertion(
     private_key: &[u8],
     auth_data: &[u8],
     client_data_hash: &[u8],
-) -> Result<Vec<u8, 128>, CtapError> {
+) -> Result<Vec<u8, 144>, CtapError> {
     // Concatenate auth_data || client_data_hash
     let total_len = auth_data.len() + client_data_hash.len();
     let mut sig_input = [0u8; 600];
@@ -275,22 +286,37 @@ fn sign_assertion(
     sig_input[..auth_data.len()].copy_from_slice(auth_data);
     sig_input[auth_data.len()..total_len].copy_from_slice(client_data_hash);
 
-    let mut sig: Vec<u8, 128> = Vec::new();
+    let mut sig: Vec<u8, 144> = Vec::new();
     match alg {
         -7 => {
             let s = ecc::ecdsa_sign_p256(private_key, &sig_input[..total_len])
                 .map_err(|_| CtapError::Other)?;
-            sig.extend_from_slice(&s).map_err(|_| CtapError::InvalidLength)?;
+            sig.extend_from_slice(&s)
+                .map_err(|_| CtapError::InvalidLength)?;
+        }
+        -35 => {
+            let s = ecc::ecdsa_sign_p384(private_key, &sig_input[..total_len])
+                .map_err(|_| CtapError::Other)?;
+            sig.extend_from_slice(&s)
+                .map_err(|_| CtapError::InvalidLength)?;
+        }
+        -36 => {
+            let s = ecc::ecdsa_sign_p521(private_key, &sig_input[..total_len])
+                .map_err(|_| CtapError::Other)?;
+            sig.extend_from_slice(&s)
+                .map_err(|_| CtapError::InvalidLength)?;
         }
         -47 => {
             let s = ecc::ecdsa_sign_k256(private_key, &sig_input[..total_len])
                 .map_err(|_| CtapError::Other)?;
-            sig.extend_from_slice(&s).map_err(|_| CtapError::InvalidLength)?;
+            sig.extend_from_slice(&s)
+                .map_err(|_| CtapError::InvalidLength)?;
         }
         -8 => {
             let s = ecc::ed25519_sign(private_key, &sig_input[..total_len])
                 .map_err(|_| CtapError::Other)?;
-            sig.extend_from_slice(&s).map_err(|_| CtapError::InvalidLength)?;
+            sig.extend_from_slice(&s)
+                .map_err(|_| CtapError::InvalidLength)?;
         }
         _ => return Err(CtapError::InvalidCredential),
     }
@@ -518,14 +544,8 @@ pub fn handle_get_next_assertion(
     let sign_count = cred.sign_count;
 
     let mut auth_data_buf = [0u8; 256];
-    let auth_data_len = build_assertion_auth_data(
-        &rp_id_hash,
-        sign_count,
-        uv,
-        true,
-        None,
-        &mut auth_data_buf,
-    )?;
+    let auth_data_len =
+        build_assertion_auth_data(&rp_id_hash, sign_count, uv, true, None, &mut auth_data_buf)?;
     let auth_data = &auth_data_buf[..auth_data_len];
 
     let alg = detect_algorithm_from_cose_key(&cred.public_key_cose)?;

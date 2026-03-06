@@ -19,9 +19,7 @@ use embassy_time::{Duration, Ticker, Timer};
 use pico_rs_sdk::button::{ButtonReader, PresenceDetector};
 use pico_rs_sdk::led::{LedColor, LedController, LedDriver, LedState};
 use pico_rs_sdk::rescue::{detect_rescue_mode, RescueMode};
-use pico_rs_sdk::transport::hid::{
-    CommandHandler, CtapHidDispatcher, MAX_MSG_SIZE,
-};
+use pico_rs_sdk::transport::hid::{CommandHandler, CtapHidDispatcher, MAX_MSG_SIZE};
 
 use pico_rs_fido::fido::{FidoApp, FidoConfig};
 
@@ -129,7 +127,10 @@ impl CommandHandler for FidoHandler {
     ) -> Result<(), pico_rs_sdk::transport::TransportError> {
         let mut buf = [0u8; 7609];
         let now_ms = embassy_time::Instant::now().as_millis();
-        match self.fido.process_ctaphid_cbor(data, &mut buf, now_ms, self.button_pressed) {
+        match self
+            .fido
+            .process_ctaphid_cbor(data, &mut buf, now_ms, self.button_pressed)
+        {
             Ok(n) => {
                 let _ = response.extend_from_slice(&buf[..n]);
                 Ok(())

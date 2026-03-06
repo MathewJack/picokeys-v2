@@ -149,7 +149,10 @@ impl CommandHandler for FidoHandler {
     ) -> Result<(), pico_rs_sdk::transport::TransportError> {
         let mut buf = [0u8; 7609];
         let now_ms = embassy_time::Instant::now().as_millis();
-        match self.fido.process_ctaphid_cbor(data, &mut buf, now_ms, self.button_pressed) {
+        match self
+            .fido
+            .process_ctaphid_cbor(data, &mut buf, now_ms, self.button_pressed)
+        {
             Ok(n) => {
                 let _ = response.extend_from_slice(&buf[..n]);
                 Ok(())

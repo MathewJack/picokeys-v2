@@ -4,7 +4,7 @@
 //! SHA-256 integrity verification.
 
 use super::ctap::CtapError;
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 /// Maximum size of the large-blob array.
 pub const LARGE_BLOB_MAX: usize = 2048;
@@ -39,11 +39,7 @@ impl LargeBlobStore {
     }
 
     /// Read `length` bytes starting at `offset`.
-    pub fn read(
-        &self,
-        offset: usize,
-        length: usize,
-    ) -> Result<&[u8], CtapError> {
+    pub fn read(&self, offset: usize, length: usize) -> Result<&[u8], CtapError> {
         let end = offset.checked_add(length).ok_or(CtapError::InvalidLength)?;
         if end > self.len {
             return Err(CtapError::InvalidLength);
@@ -57,11 +53,7 @@ impl LargeBlobStore {
     /// streaming), the last 16 bytes are expected to be
     /// `LEFT(SHA-256(content), 16)`.  Verification is done by
     /// [`verify_hash`](Self::verify_hash).
-    pub fn write(
-        &mut self,
-        offset: usize,
-        src: &[u8],
-    ) -> Result<(), CtapError> {
+    pub fn write(&mut self, offset: usize, src: &[u8]) -> Result<(), CtapError> {
         let end = offset
             .checked_add(src.len())
             .ok_or(CtapError::InvalidLength)?;

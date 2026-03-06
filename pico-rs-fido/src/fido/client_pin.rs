@@ -216,14 +216,11 @@ impl PinProtocolState {
         &mut self,
         rng: &mut (impl rand_core::CryptoRng + rand_core::RngCore),
     ) {
-        let keypair =
-            ecc::generate_p256(rng).expect("P-256 key generation should not fail");
+        let keypair = ecc::generate_p256(rng).expect("P-256 key generation should not fail");
         self.ecdh_private_key.fill(0);
-        self.ecdh_private_key[..keypair.private_key.len()]
-            .copy_from_slice(&keypair.private_key);
+        self.ecdh_private_key[..keypair.private_key.len()].copy_from_slice(&keypair.private_key);
         self.ecdh_public_key.fill(0);
-        self.ecdh_public_key[..keypair.public_key.len()]
-            .copy_from_slice(&keypair.public_key);
+        self.ecdh_public_key[..keypair.public_key.len()].copy_from_slice(&keypair.public_key);
         self.shared_secret_valid = false;
     }
 
@@ -246,11 +243,8 @@ impl PinProtocolState {
         protocol: PinProtocol,
         peer_public_key: &[u8],
     ) -> Result<(), CtapError> {
-        let raw_shared = ecc::ecdh_p256(
-            &self.ecdh_private_key,
-            peer_public_key,
-        )
-        .map_err(|_| CtapError::InvalidParameter)?;
+        let raw_shared = ecc::ecdh_p256(&self.ecdh_private_key, peer_public_key)
+            .map_err(|_| CtapError::InvalidParameter)?;
 
         match protocol {
             PinProtocol::V1 => {
@@ -258,8 +252,13 @@ impl PinProtocolState {
             }
             PinProtocol::V2 => {
                 let salt = [0u8; 32];
-                hkdf_sha256(&raw_shared, &salt, b"CTAP2 HMAC key", &mut self.shared_secret)
-                    .map_err(|_| CtapError::Other)?;
+                hkdf_sha256(
+                    &raw_shared,
+                    &salt,
+                    b"CTAP2 HMAC key",
+                    &mut self.shared_secret,
+                )
+                .map_err(|_| CtapError::Other)?;
             }
         }
         self.shared_secret_valid = true;
@@ -292,13 +291,8 @@ impl PinProtocolState {
                 }
                 let mut iv = [0u8; 16];
                 iv.copy_from_slice(&encrypted_pin[..16]);
-                aes256_cbc_decrypt(
-                    &self.shared_secret,
-                    &iv,
-                    &encrypted_pin[16..],
-                    &mut output,
-                )
-                .map_err(|_| CtapError::PinInvalid)?
+                aes256_cbc_decrypt(&self.shared_secret, &iv, &encrypted_pin[16..], &mut output)
+                    .map_err(|_| CtapError::PinInvalid)?
             }
         };
 
@@ -330,13 +324,9 @@ impl PinProtocolState {
         match protocol {
             PinProtocol::V1 => {
                 let iv = [0u8; 16];
-                let ct_len = aes256_cbc_encrypt(
-                    &self.shared_secret,
-                    &iv,
-                    &self.pin_token,
-                    &mut output,
-                )
-                .map_err(|_| CtapError::Other)?;
+                let ct_len =
+                    aes256_cbc_encrypt(&self.shared_secret, &iv, &self.pin_token, &mut output)
+                        .map_err(|_| CtapError::Other)?;
                 result
                     .extend_from_slice(&output[..ct_len])
                     .map_err(|_| CtapError::InvalidLength)?;
@@ -347,13 +337,9 @@ impl PinProtocolState {
                 result
                     .extend_from_slice(&iv)
                     .map_err(|_| CtapError::InvalidLength)?;
-                let ct_len = aes256_cbc_encrypt(
-                    &self.shared_secret,
-                    &iv,
-                    &self.pin_token,
-                    &mut output,
-                )
-                .map_err(|_| CtapError::Other)?;
+                let ct_len =
+                    aes256_cbc_encrypt(&self.shared_secret, &iv, &self.pin_token, &mut output)
+                        .map_err(|_| CtapError::Other)?;
                 result
                     .extend_from_slice(&output[..ct_len])
                     .map_err(|_| CtapError::InvalidLength)?;
@@ -461,7 +447,9 @@ pub fn handle_client_pin(
                     match cose_key {
                         -2 => cose_x = Some(dec.expect_bytes()?),
                         -3 => cose_y = Some(dec.expect_bytes()?),
-                        _ => { dec.skip_value()?; }
+                        _ => {
+                            dec.skip_value()?;
+                        }
                     }
                 }
             }
@@ -470,16 +458,16 @@ pub fn handle_client_pin(
             0x06 => pin_hash_enc = Some(dec.expect_bytes()?),
             0x09 => permissions = Some(dec.expect_unsigned()? as u8),
             0x0A => permissions_rp_id = Some(dec.expect_text()?),
-            _ => { dec.skip_value()?; }
+            _ => {
+                dec.skip_value()?;
+            }
         }
     }
 
     let sub_command = sub_command.ok_or(CtapError::MissingParameter)?;
 
     match sub_command {
-        PinCommand::GetRetries => {
-            handle_get_retries(response, pin_state)
-        }
+        PinCommand::GetRetries => handle_get_retries(response, pin_state),
 
         PinCommand::GetKeyAgreement => {
             let proto = protocol.ok_or(CtapError::MissingParameter)?;
@@ -559,8 +547,10 @@ pub fn handle_client_pin(
             }
             auth_input[..new_pin_enc.len()].copy_from_slice(new_pin_enc);
             auth_input[new_pin_enc.len()..auth_input_len].copy_from_slice(pin_hash_enc);
-            let computed_auth =
-                hmac_sha256(&pin_protocol_state.shared_secret, &auth_input[..auth_input_len]);
+            let computed_auth = hmac_sha256(
+                &pin_protocol_state.shared_secret,
+                &auth_input[..auth_input_len],
+            );
 
             let auth_valid: bool = match proto {
                 PinProtocol::V1 => {
@@ -692,10 +682,7 @@ pub fn handle_client_pin(
 
 // ---- Sub-command handlers ----
 
-fn handle_get_retries(
-    response: &mut [u8],
-    pin_state: &PinState,
-) -> Result<usize, CtapError> {
+fn handle_get_retries(response: &mut [u8], pin_state: &PinState) -> Result<usize, CtapError> {
     let mut enc = CborEncoder::new(response);
     enc.write_map_header(1)?;
     // 0x03: retries
@@ -743,10 +730,7 @@ fn handle_get_key_agreement(
 }
 
 /// Reconstruct SEC1 uncompressed point (0x04 || x || y) from COSE coordinates.
-fn reconstruct_sec1_point(
-    x: Option<&[u8]>,
-    y: Option<&[u8]>,
-) -> Result<[u8; 65], CtapError> {
+fn reconstruct_sec1_point(x: Option<&[u8]>, y: Option<&[u8]>) -> Result<[u8; 65], CtapError> {
     let x = x.ok_or(CtapError::MissingParameter)?;
     let y = y.ok_or(CtapError::MissingParameter)?;
     if x.len() != 32 || y.len() != 32 {

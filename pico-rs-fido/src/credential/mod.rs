@@ -3,9 +3,9 @@
 //! Provides encrypted credential storage with AES-256-GCM protection,
 //! TLV serialization, and a fixed-capacity credential store.
 
+pub mod backup;
 pub mod id;
 pub mod kek;
-pub mod backup;
 
 use heapless::{String, Vec};
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -71,7 +71,7 @@ pub struct ResidentCredential {
     pub user_name: String<64>,
     pub display_name: String<64>,
     pub private_key: PrivateKeyMaterial,
-    pub public_key_cose: Vec<u8, 133>,
+    pub public_key_cose: Vec<u8, 160>,
     pub sign_count: u32,
     pub cred_protect_level: u8,
     pub discoverable: bool,

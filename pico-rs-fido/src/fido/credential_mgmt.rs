@@ -104,7 +104,9 @@ fn parse_cred_mgmt_request<'a>(data: &'a [u8]) -> Result<CredMgmtRequest<'a>, Ct
                                 let cred_key = dec.expect_text()?;
                                 match cred_key {
                                     "id" => credential_id = Some(dec.expect_bytes()?),
-                                    _ => { dec.skip_value()?; }
+                                    _ => {
+                                        dec.skip_value()?;
+                                    }
                                 }
                             }
                         }
@@ -118,17 +120,23 @@ fn parse_cred_mgmt_request<'a>(data: &'a [u8]) -> Result<CredMgmtRequest<'a>, Ct
                                     "displayName" => {
                                         user_display_name = Some(dec.expect_text()?);
                                     }
-                                    _ => { dec.skip_value()?; }
+                                    _ => {
+                                        dec.skip_value()?;
+                                    }
                                 }
                             }
                         }
-                        _ => { dec.skip_value()?; }
+                        _ => {
+                            dec.skip_value()?;
+                        }
                     }
                 }
             }
             // 0x03: pinUvAuthProtocol (validated by caller)
             // 0x04: pinUvAuthParam (validated by caller)
-            _ => { dec.skip_value()?; }
+            _ => {
+                dec.skip_value()?;
+            }
         }
     }
 
@@ -161,9 +169,7 @@ pub fn handle_credential_management(
     let request = parse_cred_mgmt_request(data)?;
 
     match request.sub_command {
-        CredMgmtCommand::GetCredsMetadata => {
-            handle_get_creds_metadata(response, credential_store)
-        }
+        CredMgmtCommand::GetCredsMetadata => handle_get_creds_metadata(response, credential_store),
         CredMgmtCommand::EnumerateRpsBegin => {
             handle_enumerate_rps_begin(response, credential_store, rp_enum_state)
         }
@@ -177,12 +183,7 @@ pub fn handle_credential_management(
             }
             let mut hash = [0u8; 32];
             hash.copy_from_slice(rp_id_hash);
-            handle_enumerate_credentials_begin(
-                response,
-                credential_store,
-                &hash,
-                cred_enum_state,
-            )
+            handle_enumerate_credentials_begin(response, credential_store, &hash, cred_enum_state)
         }
         CredMgmtCommand::EnumerateCredentialsGetNextCredential => {
             handle_enumerate_credentials_next(response, credential_store, cred_enum_state)

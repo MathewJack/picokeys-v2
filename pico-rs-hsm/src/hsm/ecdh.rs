@@ -32,9 +32,8 @@ pub fn ecdh_derive(
 }
 
 fn ecdh_p256(private_key: &[u8], peer_public_key: &[u8]) -> Result<Vec<u8, 66>, u16> {
-    let shared =
-        pico_rs_sdk::crypto::ecc::ecdh_p256(private_key, peer_public_key)
-            .map_err(|_| SW_INVALID_DATA)?;
+    let shared = pico_rs_sdk::crypto::ecc::ecdh_p256(private_key, peer_public_key)
+        .map_err(|_| SW_INVALID_DATA)?;
     let mut out: Vec<u8, 66> = Vec::new();
     out.extend_from_slice(&shared)
         .map_err(|_| SW_WRONG_LENGTH)?;
@@ -86,8 +85,8 @@ fn ecdh_x25519(private_key: &[u8], peer_public_key: &[u8]) -> Result<Vec<u8, 66>
     let mut pub_arr = [0u8; 32];
     pub_arr.copy_from_slice(&peer_public_key[..32]);
 
-    let shared = pico_rs_sdk::crypto::ecc::x25519_ecdh(&priv_arr, &pub_arr)
-        .map_err(|_| SW_INVALID_DATA)?;
+    let shared =
+        pico_rs_sdk::crypto::ecc::x25519_ecdh(&priv_arr, &pub_arr).map_err(|_| SW_INVALID_DATA)?;
     priv_arr.zeroize();
 
     let mut out: Vec<u8, 66> = Vec::new();

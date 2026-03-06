@@ -31,7 +31,7 @@ use pico_rs_sdk::transport::ccid::class::CcidClass;
 use pico_rs_sdk::transport::ccid::CcidDispatcher;
 use pico_rs_sdk::transport::hid::class::FidoHidClass;
 use pico_rs_sdk::transport::hid::{
-    CtapHidDispatcher, CommandHandler, ReportWriter, HID_REPORT_SIZE, MAX_MSG_SIZE,
+    CommandHandler, CtapHidDispatcher, ReportWriter, HID_REPORT_SIZE, MAX_MSG_SIZE,
 };
 
 use pico_rs_fido::fido::{FidoApp, FidoConfig};
@@ -143,7 +143,10 @@ impl CommandHandler for FidoHandler {
     ) -> Result<(), pico_rs_sdk::transport::TransportError> {
         let mut buf = [0u8; 7609];
         let now_ms = embassy_time::Instant::now().as_millis();
-        match self.fido.process_ctaphid_cbor(data, &mut buf, now_ms, self.button_pressed) {
+        match self
+            .fido
+            .process_ctaphid_cbor(data, &mut buf, now_ms, self.button_pressed)
+        {
             Ok(n) => {
                 let _ = response.extend_from_slice(&buf[..n]);
                 Ok(())
@@ -203,9 +206,7 @@ async fn hid_task(
 }
 
 #[embassy_executor::task]
-async fn ccid_task(
-    mut ccid_class: CcidClass<'static, Driver<'static, USB>>,
-) -> ! {
+async fn ccid_task(mut ccid_class: CcidClass<'static, Driver<'static, USB>>) -> ! {
     let mut dispatcher = CcidDispatcher::new();
     let mut rx_buf = [0u8; 1034]; // CCID header (10) + max payload (1024)
     let mut tx_buf = [0u8; 1034];

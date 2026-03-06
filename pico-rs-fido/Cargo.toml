@@ -66,7 +66,7 @@ atsamd-hal = { version = "0.17", optional = true }
 # Logging / panic (binary entrypoints)
 defmt-rtt = { version = "0.4", optional = true }
 panic-probe = { version = "0.3", features = ["print-defmt"], optional = true }
-static-cell = { version = "2.1", optional = true }
+static-cell = { version = "2.1", optional = true, package = "static_cell" }
 
 # Binary entrypoint [[bin]] definitions
 [[bin]]

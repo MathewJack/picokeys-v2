@@ -26,4 +26,8 @@ fuzz/artifacts/
 SECURITY.md
 RUST_REWRITE_RESEARCH.md
 plan.md
-scripts/
+scripts/*
+scripts
+fuzz
+RUST_REWRITE_RESEARCH.md
+SECURITY.md

@@ -7,50 +7,65 @@ description = "Hardware Security Module (HSM) application for PicoKeys v2"
 
 [features]
 default = []
-rp2040 = ["pico-rs-sdk/rp2040"]
-rp2350 = ["pico-rs-sdk/rp2350"]
+rp2040  = ["pico-rs-sdk/rp2040"]
+rp2350  = ["pico-rs-sdk/rp2350"]
 esp32s3 = ["pico-rs-sdk/esp32s3"]
 esp32c5 = ["pico-rs-sdk/esp32c5"]
 esp32c6 = ["pico-rs-sdk/esp32c6"]
-samd21 = ["pico-rs-sdk/samd21"]
+# samd21 has no RSA/HSM support (too little flash); keep feature for SDK compat
+samd21  = ["pico-rs-sdk/samd21"]
 
 [dependencies]
-pico-rs-sdk = { path = "../pico-rs-sdk" }
+# rsa needs alloc; activate the alloc feature on pico-rs-sdk so it pulls
+# in rsa and a global allocator shim.
+pico-rs-sdk = { path = "../pico-rs-sdk", features = ["alloc"] }
 
 # Crypto
-rsa = { version = "0.9", default-features = false }
-p256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-p384 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-p521 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-k256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
-ed25519-dalek = { version = "2.1", default-features = false }
-x25519-dalek = { version = "2.0", default-features = false }
-aes = { version = "0.8", default-features = false }
-aes-gcm = { version = "0.10", default-features = false, features = ["aes"] }
-chacha20poly1305 = { version = "0.10", default-features = false }
-cbc = { version = "0.1", default-features = false }
-hmac = { version = "0.12", default-features = false }
-hkdf = { version = "0.12", default-features = false }
-pbkdf2 = { version = "0.12", default-features = false }
-sha2 = { version = "0.10", default-features = false }
-cmac = { version = "0.7", default-features = false }
-zeroize = { version = "1.8", default-features = false, features = ["derive"] }
-subtle = { version = "2.6", default-features = false }
-rand_core = { version = "0.6", default-features = false }
-der = { version = "0.7", default-features = false }
-pkcs8 = { version = "0.10", default-features = false }
-x509-cert = { version = "0.2", default-features = false }
-bip32 = { version = "0.5", default-features = false }
+rsa.workspace              = true
+p256.workspace             = true
+p384.workspace             = true
+p521.workspace             = true
+k256.workspace             = true
+ed25519-dalek.workspace    = true
+x25519-dalek.workspace     = true
+aes.workspace              = true
+aes-gcm.workspace          = true
+chacha20poly1305.workspace = true
+cbc.workspace              = true
+hmac.workspace             = true
+hkdf.workspace             = true
+pbkdf2.workspace           = true
+sha2.workspace             = true
+cmac.workspace             = true
+zeroize.workspace          = true
+subtle.workspace           = true
+rand_core.workspace        = true
+der.workspace              = true
+pkcs8.workspace            = true
+x509-cert.workspace        = true
+bip32.workspace            = true
+dbl.workspace              = true
+crypto-bigint.workspace    = true
+elliptic-curve.workspace   = true
+
+# getrandom pinned with "custom"
+getrandom.workspace = true
+
+# thiserror v2 no_std
+thiserror.workspace = true
+
+# half: no std
+half.workspace = true
 
 # CBOR
-cbor-smol = "0.5"
+cbor-smol.workspace = true
 
 # Data structures
-heapless = "0.8"
-defmt = "0.3"
+heapless.workspace = true
+defmt.workspace    = true
 
 # Embassy
-embassy-executor = { version = "0.7", default-features = false }
-embassy-time = { version = "0.4", default-features = false }
-embassy-sync = { version = "0.6", default-features = false }
-embassy-usb = { version = "0.4", default-features = false }
+embassy-executor.workspace = true
+embassy-time.workspace     = true
+embassy-sync.workspace     = true
+embassy-usb.workspace      = true

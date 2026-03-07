@@ -23,3 +23,7 @@ Thumbs.db
 # Fuzz corpus
 fuzz/corpus/
 fuzz/artifacts/
+SECURITY.md
+RUST_REWRITE_RESEARCH.md
+plan.md
+scripts/

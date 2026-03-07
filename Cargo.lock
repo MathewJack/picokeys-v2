@@ -1335,7 +1335,6 @@ dependencies = [
  "bitflags 2.11.0",
  "bytemuck",
  "cfg-if",
- "critical-section",
  "delegate",
  "document-features",
  "embassy-futures",
@@ -1346,16 +1345,8 @@ dependencies = [
  "esp-config",
  "esp-hal-procmacros",
  "esp-metadata-generated",
- "esp-riscv-rt",
  "esp-rom-sys",
  "esp-sync",
- "esp32",
- "esp32c2",
- "esp32c3",
- "esp32c6",
- "esp32h2",
- "esp32s2",
- "esp32s3",
  "fugit",
  "instability",
  "paste",
@@ -1363,7 +1354,6 @@ dependencies = [
  "riscv",
  "strum",
  "xtensa-lx",
- "xtensa-lx-rt",
 ]
 
 [[package]]
@@ -1385,17 +1375,6 @@ name = "esp-metadata-generated"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a93e39c8ad8d390d248dc7b9f4b59a873f313bf535218b8e2351356972399e3"
-
-[[package]]
-name = "esp-riscv-rt"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "502744a5b1e7268d27fd2a4e56ad45efe42ead517d6c517a6961540de949b0ee"
-dependencies = [
- "document-features",
- "riscv",
- "riscv-rt",
-]
 
 [[package]]
 name = "esp-rom-sys"
@@ -1421,76 +1400,6 @@ dependencies = [
  "esp-metadata-generated",
  "riscv",
  "xtensa-lx",
-]
-
-[[package]]
-name = "esp32"
-version = "0.39.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b76170a463d18f888a1ad258031901036fd827a9ef126733053ba5f8739fb0c8"
-dependencies = [
- "critical-section",
- "vcell",
-]
-
-[[package]]
-name = "esp32c2"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e62cf8932966b8d445b6f1832977b468178f0a84effb2e9fda89f60c24d45aa3"
-dependencies = [
- "critical-section",
- "vcell",
-]
-
-[[package]]
-name = "esp32c3"
-version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "356af3771d0d6536c735bf71136594f4d1cbb506abf6e0c51a6639e9bf4e7988"
-dependencies = [
- "critical-section",
- "vcell",
-]
-
-[[package]]
-name = "esp32c6"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f5e511df672d79cd63365c92045135e01ba952b6bddd25b660baff5e1110f6b"
-dependencies = [
- "critical-section",
- "vcell",
-]
-
-[[package]]
-name = "esp32h2"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed4a50bbd1380931e095e0973b9b12f782a9c481f2edf1f7c42e7eb4ff736d6d"
-dependencies = [
- "critical-section",
- "vcell",
-]
-
-[[package]]
-name = "esp32s2"
-version = "0.30.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98574d4c577fbe888fe3e6df7fc80d25a05624d9998f7d7de1500ae21fcca78f"
-dependencies = [
- "critical-section",
- "vcell",
-]
-
-[[package]]
-name = "esp32s3"
-version = "0.34.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1810d8ee4845ef87542af981e38eb80ab531d0ef1061e1486014ab7af74c337a"
-dependencies = [
- "critical-section",
- "vcell",
 ]
 
 [[package]]
@@ -2433,10 +2342,13 @@ dependencies = [
  "cortex-m",
  "cortex-m-rt",
  "cosey",
+ "crypto-bigint",
  "ctap-types",
+ "dbl",
  "defmt 0.3.100",
  "defmt-rtt",
  "ed25519-dalek",
+ "elliptic-curve",
  "embassy-executor",
  "embassy-futures",
  "embassy-rp",
@@ -2444,6 +2356,8 @@ dependencies = [
  "embassy-time",
  "embassy-usb",
  "esp-hal",
+ "getrandom 0.2.17",
+ "half 2.7.1",
  "heapless 0.8.0",
  "hmac",
  "p256",
@@ -2455,6 +2369,7 @@ dependencies = [
  "sha2",
  "static_cell",
  "subtle",
+ "thiserror 2.0.18",
  "totp-lite",
  "zeroize",
 ]
@@ -2470,13 +2385,18 @@ dependencies = [
  "cbor-smol",
  "chacha20poly1305",
  "cmac",
+ "crypto-bigint",
+ "dbl",
  "defmt 0.3.100",
  "der",
  "ed25519-dalek",
+ "elliptic-curve",
  "embassy-executor",
  "embassy-sync 0.6.2",
  "embassy-time",
  "embassy-usb",
+ "getrandom 0.2.17",
+ "half 2.7.1",
  "heapless 0.8.0",
  "hkdf",
  "hmac",
@@ -2491,6 +2411,7 @@ dependencies = [
  "rsa",
  "sha2",
  "subtle",
+ "thiserror 2.0.18",
  "x25519-dalek",
  "x509-cert",
  "zeroize",
@@ -2508,9 +2429,12 @@ dependencies = [
  "cmac",
  "cortex-m",
  "cortex-m-rt",
+ "crypto-bigint",
+ "dbl",
  "defmt 0.3.100",
  "der",
  "ed25519-dalek",
+ "elliptic-curve",
  "embassy-executor",
  "embassy-futures",
  "embassy-rp",
@@ -2522,6 +2446,8 @@ dependencies = [
  "embedded-storage",
  "embedded-storage-async",
  "esp-hal",
+ "getrandom 0.2.17",
+ "half 2.7.1",
  "heapless 0.8.0",
  "hkdf",
  "hmac",
@@ -2540,6 +2466,7 @@ dependencies = [
  "sha2",
  "smart-leds",
  "subtle",
+ "thiserror 2.0.18",
  "ws2812-pio",
  "x25519-dalek",
  "zeroize",
@@ -2905,35 +2832,6 @@ name = "riscv-pac"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8188909339ccc0c68cfb5a04648313f09621e8b87dc03095454f1a11f6c5d436"
-
-[[package]]
-name = "riscv-rt"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d07b9f3a0eff773fc4df11f44ada4fa302e529bff4b7fe7e6a4b98a65ce9174"
-dependencies = [
- "riscv",
- "riscv-pac",
- "riscv-rt-macros",
- "riscv-target-parser",
-]
-
-[[package]]
-name = "riscv-rt-macros"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "def519ddeeb5e43c2b4fc3952c27b3a86782fc05192f322b2309125cd85b1fc3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
-name = "riscv-target-parser"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1376b15f3ff160e9b1e8ea564ce427f2f6fcf77528cc0a8bf405cb476f9cea7"
 
 [[package]]
 name = "rp-pac"
@@ -4244,28 +4142,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e012d667b0aa6d2592ace8ef145a98bff3e76cca7a644f4181ecd7a916ed289b"
 dependencies = [
  "critical-section",
-]
-
-[[package]]
-name = "xtensa-lx-rt"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8709f037fb123fe7ff146d2bce86f9dc0dfc53045c016bfd9d703317b6502845"
-dependencies = [
- "document-features",
- "xtensa-lx",
- "xtensa-lx-rt-proc-macros",
-]
-
-[[package]]
-name = "xtensa-lx-rt-proc-macros"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96fb42cd29c42f8744c74276e9f5bee7b06685bbe5b88df891516d72cb320450"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
 ]
 
 [[package]]

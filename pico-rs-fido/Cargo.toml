@@ -7,68 +7,88 @@ description = "FIDO2/CTAP2 + OATH application for PicoKeys v2"
 
 [features]
 default = []
-rp2040 = ["pico-rs-sdk/rp2040", "dep:embassy-rp", "dep:rp2040-boot2", "dep:cortex-m", "dep:cortex-m-rt", "dep:defmt-rtt", "dep:panic-probe", "dep:static-cell"]
-rp2350 = ["pico-rs-sdk/rp2350", "dep:embassy-rp", "dep:cortex-m", "dep:cortex-m-rt", "dep:defmt-rtt", "dep:panic-probe", "dep:static-cell"]
+rp2040  = ["pico-rs-sdk/rp2040",  "dep:embassy-rp", "dep:rp2040-boot2", "dep:cortex-m", "dep:cortex-m-rt", "dep:defmt-rtt", "dep:panic-probe", "dep:static-cell"]
+rp2350  = ["pico-rs-sdk/rp2350",  "dep:embassy-rp",                     "dep:cortex-m", "dep:cortex-m-rt", "dep:defmt-rtt", "dep:panic-probe", "dep:static-cell"]
 esp32s3 = ["pico-rs-sdk/esp32s3", "dep:esp-hal"]
 esp32c5 = ["pico-rs-sdk/esp32c5", "dep:esp-hal"]
 esp32c6 = ["pico-rs-sdk/esp32c6", "dep:esp-hal"]
-samd21 = ["pico-rs-sdk/samd21", "dep:atsamd-hal", "dep:cortex-m", "dep:cortex-m-rt", "dep:defmt-rtt", "dep:panic-probe"]
+samd21  = ["pico-rs-sdk/samd21",  "dep:atsamd-hal", "dep:cortex-m", "dep:cortex-m-rt", "dep:defmt-rtt", "dep:panic-probe"]
 
 [dependencies]
 pico-rs-sdk = { path = "../pico-rs-sdk" }
 
-# CTAP2 types and protocol
-ctap-types = "0.3"
-cosey = "0.3"
+# FIDO / OATH / BIP
+ctap-types.workspace = true
+cosey.workspace      = true
+cbor-smol.workspace  = true
+totp-lite.workspace  = true
+bip32.workspace      = true
 
-# CBOR
-cbor-smol = "0.5"
+# Crypto (direct usage on top of SDK)
+p256.workspace          = true
+ed25519-dalek.workspace = true
+aes.workspace           = true
+aes-gcm.workspace       = true
+hmac.workspace          = true
+sha1.workspace          = true
+sha2.workspace          = true
+subtle.workspace        = true
+zeroize.workspace       = true
+rand_core.workspace     = true
+dbl.workspace           = true
+crypto-bigint.workspace = true
+elliptic-curve.workspace = true
 
-# OATH
-totp-lite = "2.0"
+# getrandom must be present with "custom" so the linker finds the symbol
+getrandom.workspace = true
 
-# BIP39/32 backup
-bip32 = { version = "0.5", default-features = false }
+# thiserror v2 no_std
+thiserror.workspace = true
 
-# Crypto (re-exported from SDK but some direct usage needed)
-p256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-ed25519-dalek = { version = "2.1", default-features = false }
-aes = { version = "0.8", default-features = false }
-aes-gcm = { version = "0.10", default-features = false, features = ["aes"] }
-hmac = { version = "0.12", default-features = false }
-sha1 = { version = "0.10", default-features = false }
-sha2 = { version = "0.10", default-features = false }
-subtle = { version = "2.6", default-features = false }
-zeroize = { version = "1.8", default-features = false, features = ["derive"] }
-rand_core = { version = "0.6", default-features = false }
-heapless = "0.8"
-defmt = "0.3"
+# half: no std
+half.workspace = true
+
+# NOTE: darling_macro has been intentionally REMOVED.
+# darling_macro is a proc-macro crate whose transitive dependencies
+# (lalrpop, regex, indexmap, itertools, fnv, libc, semver, siphasher,
+# phf_shared, either) all enable "std" features.  Because Cargo's
+# feature resolver does not isolate proc-macro crate dependencies from
+# the target's feature graph in all cases, these std features leak into
+# the embedded build and cause link failures.
+#
+# If your source code uses #[derive(FromMeta)] from darling, keep the
+# dependency but move it under a cfg-gated dev-dependency or ensure you
+# are on resolver = "2" with the proc-macro isolation fix.  For firmware
+# crates, darling derives are almost never needed at runtime.
+
+heapless.workspace = true
+defmt.workspace    = true
 
 # Embassy
-embassy-executor = { version = "0.7", default-features = false }
-embassy-time = { version = "0.4", default-features = false }
-embassy-sync = { version = "0.6", default-features = false }
-embassy-futures = { version = "0.1", default-features = false }
-embassy-usb = { version = "0.4", default-features = false }
+embassy-executor.workspace = true
+embassy-time.workspace     = true
+embassy-sync.workspace     = true
+embassy-futures.workspace  = true
+embassy-usb.workspace      = true
 
-# Platform: RP2040/RP2350 (binary entrypoints)
-embassy-rp = { version = "0.4", default-features = false, optional = true }
-rp2040-boot2 = { version = "0.3", optional = true }
-cortex-m = { version = "0.7", optional = true }
-cortex-m-rt = { version = "0.7", optional = true }
+# ── Platform: RP2040 / RP2350 ────────────────────────────────────────────────
+embassy-rp   = { workspace = true, optional = true }
+rp2040-boot2 = { workspace = true, optional = true }
+cortex-m     = { workspace = true, optional = true }
+cortex-m-rt  = { workspace = true, optional = true }
 
-# Platform: ESP32
-esp-hal = { version = "1.0.0-beta.0", optional = true }
+# ── Platform: ESP32 ──────────────────────────────────────────────────────────
+esp-hal = { workspace = true, optional = true }
 
-# Platform: SAMD21
-atsamd-hal = { version = "0.17", optional = true }
+# ── Platform: SAMD21 ─────────────────────────────────────────────────────────
+atsamd-hal = { workspace = true, optional = true }
 
-# Logging / panic (binary entrypoints)
-defmt-rtt = { version = "0.4", optional = true }
-panic-probe = { version = "0.3", features = ["print-defmt"], optional = true }
-static-cell = { version = "2.1", optional = true, package = "static_cell" }
+# ── Logging / panic ──────────────────────────────────────────────────────────
+defmt-rtt   = { workspace = true, optional = true }
+panic-probe = { workspace = true, optional = true }
+static-cell = { workspace = true, optional = true }
 
-# Binary entrypoint [[bin]] definitions
+# ── Binary entry points ──────────────────────────────────────────────────────
 [[bin]]
 name = "picokeys-fido-rp2040"
 path = "src/bin/rp2040.rs"

@@ -7,76 +7,88 @@ description = "Core SDK for PicoKeys v2 — transport, crypto, storage, LED, but
 
 [features]
 default = []
-alloc = ["dep:rsa", "zeroize/alloc"]
-rp2040 = ["dep:embassy-rp", "dep:rp2040-boot2", "dep:ws2812-pio", "dep:cortex-m", "dep:cortex-m-rt"]
-rp2350 = ["dep:embassy-rp", "dep:ws2812-pio", "dep:cortex-m", "dep:cortex-m-rt"]
+alloc  = ["dep:rsa", "zeroize/alloc"]
+rp2040 = ["dep:embassy-rp", "embassy-rp/rp2040", "dep:rp2040-boot2", "dep:ws2812-pio", "dep:cortex-m", "dep:cortex-m-rt"]
+rp2350 = ["dep:embassy-rp", "embassy-rp/_rp235x", "dep:cortex-m", "dep:cortex-m-rt"]
 esp32s3 = ["dep:esp-hal"]
 esp32c5 = ["dep:esp-hal"]
 esp32c6 = ["dep:esp-hal"]
-samd21 = ["dep:atsamd-hal", "dep:cortex-m", "dep:cortex-m-rt"]
+samd21  = ["dep:atsamd-hal", "dep:cortex-m", "dep:cortex-m-rt"]
 
 [dependencies]
-# Embassy async runtime
-embassy-executor = { version = "0.7", default-features = false }
-embassy-time = { version = "0.4", default-features = false }
-embassy-sync = { version = "0.6", default-features = false }
-embassy-futures = { version = "0.1", default-features = false }
-embassy-usb = { version = "0.4", default-features = false }
-embassy-usb-driver = { version = "0.1", default-features = false }
+# Embassy
+embassy-executor.workspace   = true
+embassy-time.workspace       = true
+embassy-sync.workspace       = true
+embassy-futures.workspace    = true
+embassy-usb.workspace        = true
+embassy-usb-driver.workspace = true
 
 # Storage
-sequential-storage = "4.0"
-embedded-storage = "0.3"
-embedded-storage-async = "0.4"
+sequential-storage.workspace     = true
+embedded-storage.workspace       = true
+embedded-storage-async.workspace = true
 
-# APDU / Smart Card
-iso7816 = "0.1"
+# APDU
+iso7816.workspace = true
 
 # Crypto
-p256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-p384 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-p521 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-k256 = { version = "0.13", default-features = false, features = ["ecdsa", "ecdh"] }
-ed25519-dalek = { version = "2.1", default-features = false, features = ["rand_core", "zeroize"] }
-x25519-dalek = { version = "2.0", default-features = false, features = ["static_secrets", "zeroize"] }
-rsa = { version = "0.9", default-features = false, optional = true }
-aes = { version = "0.8", default-features = false }
-aes-gcm = { version = "0.10", default-features = false, features = ["aes"] }
-chacha20poly1305 = { version = "0.10", default-features = false }
-cbc = { version = "0.1", default-features = false }
-hmac = { version = "0.12", default-features = false }
-hkdf = { version = "0.12", default-features = false }
-pbkdf2 = { version = "0.12", default-features = false, features = ["hmac"] }
-sha2 = { version = "0.10", default-features = false }
-sha1 = { version = "0.10", default-features = false }
-cmac = { version = "0.7", default-features = false }
-subtle = { version = "2.6", default-features = false }
-zeroize = { version = "1.8", default-features = false, features = ["derive"] }
-rand_core = { version = "0.6", default-features = false }
-der = { version = "0.7", default-features = false }
-pkcs8 = { version = "0.10", default-features = false }
+p256.workspace           = true
+p384.workspace           = true
+p521.workspace           = true
+k256.workspace           = true
+ed25519-dalek.workspace  = true
+x25519-dalek.workspace   = true
+rsa                      = { workspace = true, optional = true }
+aes.workspace            = true
+aes-gcm.workspace        = true
+chacha20poly1305.workspace = true
+cbc.workspace            = true
+hmac.workspace           = true
+hkdf.workspace           = true
+pbkdf2.workspace         = true
+sha2.workspace           = true
+sha1.workspace           = true
+cmac.workspace           = true
+subtle.workspace         = true
+zeroize.workspace        = true
+rand_core.workspace      = true
+der.workspace            = true
+pkcs8.workspace          = true
+dbl.workspace            = true
+crypto-bigint.workspace  = true
+elliptic-curve.workspace = true
+
+# getrandom pinned with "custom" so no OS syscall is attempted
+getrandom.workspace = true
+
+# thiserror v2 (no_std-compatible)
+thiserror.workspace = true
+
+# half: no std, no serde
+half.workspace = true
 
 # Data structures
-heapless = "0.8"
+heapless.workspace = true
 
 # Logging
-defmt = "0.3"
+defmt.workspace = true
 
 # Embedded traits
-embedded-hal = "1.0"
+embedded-hal.workspace = true
 
 # LED
-smart-leds = "0.4"
+smart-leds.workspace = true
 
-# Platform: RP2040/RP2350
-embassy-rp = { version = "0.4", default-features = false, optional = true }
-rp2040-boot2 = { version = "0.3", optional = true }
-ws2812-pio = { version = "0.8", optional = true }
-cortex-m = { version = "0.7", optional = true }
-cortex-m-rt = { version = "0.7", optional = true }
+# ── Platform: RP2040 / RP2350 ────────────────────────────────────────────────
+embassy-rp   = { workspace = true, optional = true }
+rp2040-boot2 = { workspace = true, optional = true }
+ws2812-pio   = { workspace = true, optional = true }
+cortex-m     = { workspace = true, optional = true }
+cortex-m-rt  = { workspace = true, optional = true }
 
-# Platform: ESP32
-esp-hal = { version = "1.0.0-beta.0", optional = true }
+# ── Platform: ESP32 ──────────────────────────────────────────────────────────
+esp-hal = { workspace = true, optional = true }
 
-# Platform: SAMD21
-atsamd-hal = { version = "0.17", optional = true }
+# ── Platform: SAMD21 ─────────────────────────────────────────────────────────
+atsamd-hal = { workspace = true, optional = true }

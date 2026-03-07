@@ -13,6 +13,112 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/pico-keys/picokeys-v2"
 
+# ── Workspace-wide dependency pins ───────────────────────────────────────────
+# All shared deps are declared here with default-features=false so Cargo's
+# feature-unification pass cannot re-enable "std" from any member crate or
+# transitive dependency.  Member crates reference these with `.workspace = true`.
+[workspace.dependencies]
+
+# Digest / hash primitives
+# digest "std" enables std::error::Error impls — never wanted on bare-metal.
+digest        = { version = "0.10", default-features = false }
+crypto-common = { version = "0.1",  default-features = false }
+sha1          = { version = "0.10", default-features = false }
+sha2          = { version = "0.10", default-features = false }
+sha3          = { version = "0.10", default-features = false }
+hmac          = { version = "0.12", default-features = false }
+hkdf          = { version = "0.12", default-features = false }
+cmac          = { version = "0.7",  default-features = false }
+pbkdf2        = { version = "0.12", default-features = false, features = ["hmac"] }
+
+# Symmetric crypto
+aes              = { version = "0.8",  default-features = false }
+aes-gcm          = { version = "0.10", default-features = false, features = ["aes"] }
+chacha20poly1305 = { version = "0.10", default-features = false }
+cbc              = { version = "0.1",  default-features = false }
+
+# Asymmetric / ECC
+p256           = { version = "0.13",   default-features = false, features = ["ecdsa", "ecdh"] }
+p384           = { version = "0.13",   default-features = false, features = ["ecdsa", "ecdh"] }
+p521           = { version = "0.13",   default-features = false, features = ["ecdsa", "ecdh"] }
+k256           = { version = "0.13",   default-features = false, features = ["ecdsa", "ecdh"] }
+ed25519-dalek  = { version = "2.1",    default-features = false, features = ["rand_core", "zeroize"] }
+x25519-dalek   = { version = "2.0",    default-features = false, features = ["static_secrets", "zeroize"] }
+elliptic-curve = { version = "0.13.8", default-features = false, features = ["arithmetic", "group"] }
+# rsa needs alloc; only link it in crates that provide a global allocator
+rsa            = { version = "0.9",    default-features = false }
+
+# Low-level primitives
+rand_core     = { version = "0.6",   default-features = false }
+subtle        = { version = "2.6",   default-features = false }
+zeroize       = { version = "1.8",   default-features = false, features = ["derive"] }
+dbl           = { version = "0.3.2", default-features = false }
+crypto-bigint = { version = "0.5.5", default-features = false, features = ["generic-array", "rand_core", "zeroize"] }
+
+# getrandom — MUST be pinned with "custom" on bare-metal.
+# Without this, any transitive dep that activates getrandom/std will
+# attempt an OS syscall that does not exist on the target.
+getrandom = { version = "0.2", default-features = false, features = ["custom"] }
+
+# thiserror — v1 implements std::error::Error and requires std.
+# v2+ added no_std support via the "no-std" cargo feature.
+# Pinning v2 here prevents v1 from being resolved by any transitive dep.
+thiserror = { version = "2.0", default-features = false }
+
+# PKI / encoding (strip "pem" — it depends on std::io)
+der       = { version = "0.7",  default-features = false }
+pkcs8     = { version = "0.10", default-features = false }
+x509-cert = { version = "0.2",  default-features = false }
+
+# Data structures / utilities
+heapless  = { version = "0.8",   default-features = false }
+cbor-smol = { version = "0.5",   default-features = false }
+bip32     = { version = "0.5",   default-features = false }
+half      = { version = "2.7.1", default-features = false }
+
+# Logging
+defmt = { version = "0.3", default-features = false }
+
+# Embassy
+embassy-executor   = { version = "0.7", default-features = false }
+embassy-time       = { version = "0.4", default-features = false }
+embassy-sync       = { version = "0.6", default-features = false }
+embassy-futures    = { version = "0.1", default-features = false }
+embassy-usb        = { version = "0.4", default-features = false }
+embassy-usb-driver = { version = "0.1", default-features = false }
+
+# Embedded traits
+embedded-hal           = { version = "1.0", default-features = false }
+embedded-storage       = { version = "0.3", default-features = false }
+embedded-storage-async = { version = "0.4", default-features = false }
+sequential-storage     = { version = "4.0", default-features = false }
+iso7816                = { version = "0.1", default-features = false }
+smart-leds             = { version = "0.4", default-features = false }
+
+# FIDO / OATH
+ctap-types = { version = "0.3", default-features = false }
+cosey      = { version = "0.3", default-features = false }
+totp-lite  = { version = "2.0", default-features = false }
+
+# Platform: RP2040/RP2350
+embassy-rp   = { version = "0.4", default-features = false }
+rp2040-boot2 = { version = "0.3", default-features = false }
+ws2812-pio   = { version = "0.8", default-features = false }
+cortex-m     = { version = "0.7", default-features = false }
+cortex-m-rt  = { version = "0.7", default-features = false }
+
+# Platform: ESP32
+esp-hal = { version = "1.0.0-beta.0", default-features = false }
+
+# Platform: SAMD21
+atsamd-hal = { version = "0.17", default-features = false }
+
+# Panic / debug
+defmt-rtt   = { version = "0.4", default-features = false }
+panic-probe = { version = "0.3", default-features = false, features = ["print-defmt"] }
+static-cell = { version = "2.1", default-features = false, package = "static_cell" }
+
+# ── Profiles ─────────────────────────────────────────────────────────────────
 [profile.release]
 opt-level = "s"
 lto = true
@@ -21,3 +127,6 @@ debug = false
 
 [profile.release.package.num-bigint-dig]
 opt-level = 3
+
+[workspace.metadata.cargo-embed]
+force-no-std = true

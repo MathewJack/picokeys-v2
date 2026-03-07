@@ -38,3 +38,14 @@ pub mod fido;
 pub mod management;
 pub mod oath;
 pub mod u2f;
+
+// Provide getrandom's custom backend using embassy-rp's RNG peripheral.
+use embassy_rp::clocks::RoscRng;
+use rand_core::RngCore;
+
+getrandom::register_custom_getrandom!(embassy_getrandom);
+
+fn embassy_getrandom(buf: &mut [u8]) -> Result<(), getrandom::Error> {
+    RoscRng.fill_bytes(buf);
+    Ok(())
+}

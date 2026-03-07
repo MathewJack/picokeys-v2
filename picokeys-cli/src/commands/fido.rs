@@ -294,7 +294,7 @@ fn execute_credentials_list(device: Option<&str>) -> Result<()> {
     if let serde_cbor::Value::Map(ref map) = rp_data {
         let total_rps = map
             .iter()
-            .find(|(k, _)| *k == serde_cbor::Value::Integer(0x05))
+            .find(|(k, _)| **k == serde_cbor::Value::Integer(0x05))
             .and_then(|(_, v)| {
                 if let serde_cbor::Value::Integer(n) = v {
                     Some(*n as usize)

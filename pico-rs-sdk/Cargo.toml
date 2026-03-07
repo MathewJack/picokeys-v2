@@ -32,6 +32,21 @@ embedded-storage-async.workspace = true
 # APDU
 iso7816.workspace = true
 
+# Transitive RustCrypto crates — must be listed explicitly for the workspace
+# default-features=false pin to take effect. workspace.dependencies alone does
+# NOT suppress std on transitive deps; explicit listing is required.
+crypto-common.workspace  = true
+digest.workspace         = true
+block-buffer.workspace   = true
+cipher.workspace         = true
+inout.workspace          = true
+aead.workspace           = true
+universal-hash.workspace = true
+ghash.workspace          = true
+polyval.workspace        = true
+typenum.workspace        = true
+generic-array.workspace  = true
+
 # Crypto
 p256.workspace           = true
 p384.workspace           = true
@@ -59,13 +74,10 @@ dbl.workspace            = true
 crypto-bigint.workspace  = true
 elliptic-curve.workspace = true
 
-# getrandom pinned with "custom" so no OS syscall is attempted
-getrandom.workspace = true
-
 # thiserror v2 (no_std-compatible)
 thiserror.workspace = true
 
-# half: no std, no serde
+# Utilities
 half.workspace = true
 
 # Data structures

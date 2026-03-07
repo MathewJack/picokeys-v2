@@ -352,7 +352,7 @@ fn parse_otp_info(data: &[u8]) -> Result<Vec<OtpSlotInfo>> {
 
                 let slot_type = slot_map
                     .iter()
-                    .find(|(k, _)| *k == serde_cbor::Value::Text("type".into()))
+                    .find(|(k, _)| **k == serde_cbor::Value::Text("type".into()))
                     .and_then(|(_, v)| {
                         if let serde_cbor::Value::Text(t) = v {
                             Some(t.clone())

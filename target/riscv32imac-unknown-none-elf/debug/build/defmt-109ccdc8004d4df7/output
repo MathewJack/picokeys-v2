@@ -1,0 +1,3 @@
+cargo:rustc-link-search=/home/target/riscv32imac-unknown-none-elf/debug/build/defmt-109ccdc8004d4df7/out
+cargo:rustc-check-cfg=cfg(c_variadic)
+cargo:rustc-check-cfg=cfg(no_cas)

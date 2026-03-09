@@ -1,0 +1,27 @@
+[package]
+name = "rp-pac"
+version = "7.0.0"
+edition = "2021"
+license = "BSD-3-Clause"
+repository = "https://github.com/embassy-rs/rp-pac"
+description = "Peripheral Access Crate (PAC) for Raspberry Pi Silicon chips."
+
+[dependencies]
+cortex-m = "0.7.1"
+cortex-m-rt = { version = ">=0.6.15,<0.8", optional = true }
+defmt = { version = "0.3.10", optional = true }
+
+[features]
+default = []
+rt = ["cortex-m-rt/device"]
+rp2040 = []
+rp235x = []
+defmt = ["dep:defmt"]
+
+[package.metadata.embassy_docs]
+src_base = "https://github.com/embassy-rs/rp-pac/blob/v$VERSION/src/"
+src_base_git = "https://github.com/embassy-rs/rp-pac/blob/$COMMIT/src/"
+flavors = [
+    { name = "rp2040", features = ["rp2040"], target = "thumbv6m-none-eabi" },
+    { name = "rp235x", features = ["rp235x"], target = "thumbv8m.main-none-eabihf" },
+]

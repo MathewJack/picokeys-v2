@@ -1,0 +1,12 @@
+on: [push, pull_request]
+name: Build and Test check
+jobs:
+  check:
+    name: cargo-check
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          target: thumbv6m-none-eabi
+      - run: cargo build

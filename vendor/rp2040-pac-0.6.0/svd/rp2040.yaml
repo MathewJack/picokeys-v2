@@ -1,0 +1,788 @@
+_svd: "./rp2040.svd"
+
+DMA:
+  CH0_CTRL_TRIG:
+    _modify:
+      "CHAIN_TO":
+        description: "When this channel completes, it will trigger the channel indicated by CHAIN_TO. Disable by setting CHAIN_TO = _(this channel)_. \\n
+        Reset value is 0, which means for channels 1 and above the default will be to chain to channel 0 - set this field to avoid this behaviour."
+  CH0_AL1_CTRL:
+    _modify:
+      "CHAIN_TO":
+        description: "When this channel completes, it will trigger the channel indicated by CHAIN_TO. Disable by setting CHAIN_TO = _(this channel)_. \\n
+        Reset value is 0, which means for channels 1 and above the default will be to chain to channel 0 - set this field to avoid this behaviour."
+  CH0_AL2_CTRL:
+    _modify:
+      "CHAIN_TO":
+        description: "When this channel completes, it will trigger the channel indicated by CHAIN_TO. Disable by setting CHAIN_TO = _(this channel)_. \\n
+        Reset value is 0, which means for channels 1 and above the default will be to chain to channel 0 - set this field to avoid this behaviour."
+  CH0_AL3_CTRL:
+    _modify:
+      "CHAIN_TO":
+        description: "When this channel completes, it will trigger the channel indicated by CHAIN_TO. Disable by setting CHAIN_TO = _(this channel)_. \\n
+        Reset value is 0, which means for channels 1 and above the default will be to chain to channel 0 - set this field to avoid this behaviour."
+
+  "CH*_CTRL*":
+    "TREQ_SEL":
+      # The original enum only contains the values for the timers here
+      _replace_enum:
+        PIO0_TX0: [0, "Select PIO0's TX FIFO 0 as TREQ"]
+        PIO0_TX1: [1, "Select PIO0's TX FIFO 1 as TREQ"]
+        PIO0_TX2: [2, "Select PIO0's TX FIFO 2 as TREQ"]
+        PIO0_TX3: [3, "Select PIO0's TX FIFO 3 as TREQ"]
+        PIO0_RX0: [4, "Select PIO0's RX FIFO 0 as TREQ"]
+        PIO0_RX1: [5, "Select PIO0's RX FIFO 1 as TREQ"]
+        PIO0_RX2: [6, "Select PIO0's RX FIFO 2 as TREQ"]
+        PIO0_RX3: [7, "Select PIO0's RX FIFO 3 as TREQ"]
+        PIO1_TX0: [8, "Select PIO1's TX FIFO 0 as TREQ"]
+        PIO1_TX1: [9, "Select PIO1's TX FIFO 1 as TREQ"]
+        PIO1_TX2: [10, "Select PIO1's TX FIFO 2 as TREQ"]
+        PIO1_TX3: [11, "Select PIO1's TX FIFO 3 as TREQ"]
+        PIO1_RX0: [12, "Select PIO1's RX FIFO 0 as TREQ"]
+        PIO1_RX1: [13, "Select PIO1's RX FIFO 1 as TREQ"]
+        PIO1_RX2: [14, "Select PIO1's RX FIFO 2 as TREQ"]
+        PIO1_RX3: [15, "Select PIO1's RX FIFO 3 as TREQ"]
+        SPI0_TX: [16, "Select SPI0's TX FIFO as TREQ"]
+        SPI0_RX: [17, "Select SPI0's RX FIFO as TREQ"]
+        SPI1_TX: [18, "Select SPI1's TX FIFO as TREQ"]
+        SPI1_RX: [19, "Select SPI1's RX FIFO as TREQ"]
+        UART0_TX: [20, "Select UART0's TX FIFO as TREQ"]
+        UART0_RX: [21, "Select UART0's RX FIFO as TREQ"]
+        UART1_TX: [22, "Select UART1's TX FIFO as TREQ"]
+        UART1_RX: [23, "Select UART1's RX FIFO as TREQ"]
+        PWM_WRAP0: [24, "Select PWM Counter 0's Wrap Value as TREQ"]
+        PWM_WRAP1: [25, "Select PWM Counter 1's Wrap Value as TREQ"]
+        PWM_WRAP2: [26, "Select PWM Counter 2's Wrap Value as TREQ"]
+        PWM_WRAP3: [27, "Select PWM Counter 3's Wrap Value as TREQ"]
+        PWM_WRAP4: [28, "Select PWM Counter 4's Wrap Value as TREQ"]
+        PWM_WRAP5: [29, "Select PWM Counter 5's Wrap Value as TREQ"]
+        PWM_WRAP6: [30, "Select PWM Counter 6's Wrap Value as TREQ"]
+        PWM_WRAP7: [31, "Select PWM Counter 7's Wrap Value as TREQ"]
+        I2C0_TX: [32, "Select I2C0's TX FIFO as TREQ"]
+        I2C0_RX: [33, "Select I2C0's RX FIFO as TREQ"]
+        I2C1_TX: [34, "Select I2C1's TX FIFO as TREQ"]
+        I2C1_RX: [35, "Select I2C1's RX FIFO as TREQ"]
+        ADC: [36, "Select the ADC as TREQ"]
+        XIP_STREAM: [37, "Select the XIP Streaming FIFO as TREQ"]
+        XIP_SSITX: [38, "Select the XIP SSI TX FIFO as TREQ"]
+        XIP_SSIRX: [39, "Select the XIP SSI RX FIFO as TREQ"]
+        TIMER0: [59, "Select Timer 0 as TREQ"]
+        TIMER1: [60, "Select Timer 1 as TREQ"]
+        TIMER2: [61, "Select Timer 2 as TREQ (Optional)"]
+        TIMER3: [62, "Select Timer 3 as TREQ (Optional)"]
+        PERMANENT: [63, "Permanent request, for unpaced transfers."]
+
+  _delete:
+    - "CH*_AL1_CTRL"
+    - "CH*_AL2_CTRL"
+    - "CH*_AL3_CTRL"
+  _copy:
+    "CH0_AL1_CTRL":
+      _from: "CH0_CTRL_TRIG"
+      addressOffset: 0x10
+    "CH0_AL2_CTRL":
+      _from: "CH0_CTRL_TRIG"
+      addressOffset: 0x20
+    "CH0_AL3_CTRL":
+      _from: "CH0_CTRL_TRIG"
+      addressOffset: 0x30
+    "CH1_AL1_CTRL":
+      _from: "CH1_CTRL_TRIG"
+      addressOffset: 0x50
+    "CH1_AL2_CTRL":
+      _from: "CH1_CTRL_TRIG"
+      addressOffset: 0x60
+    "CH1_AL3_CTRL":
+      _from: "CH1_CTRL_TRIG"
+      addressOffset: 0x70
+    "CH2_AL1_CTRL":
+      _from: "CH2_CTRL_TRIG"
+      addressOffset: 0x90
+    "CH2_AL2_CTRL":
+      _from: "CH2_CTRL_TRIG"
+      addressOffset: 0xa0
+    "CH2_AL3_CTRL":
+      _from: "CH2_CTRL_TRIG"
+      addressOffset: 0xb0
+    "CH3_AL1_CTRL":
+      _from: "CH3_CTRL_TRIG"
+      addressOffset: 0xd0
+    "CH3_AL2_CTRL":
+      _from: "CH3_CTRL_TRIG"
+      addressOffset: 0xe0
+    "CH3_AL3_CTRL":
+      _from: "CH3_CTRL_TRIG"
+      addressOffset: 0xf0
+    "CH4_AL1_CTRL":
+      _from: "CH4_CTRL_TRIG"
+      addressOffset: 0x110
+    "CH4_AL2_CTRL":
+      _from: "CH4_CTRL_TRIG"
+      addressOffset: 0x120
+    "CH4_AL3_CTRL":
+      _from: "CH4_CTRL_TRIG"
+      addressOffset: 0x130
+    "CH5_AL1_CTRL":
+      _from: "CH5_CTRL_TRIG"
+      addressOffset: 0x150
+    "CH5_AL2_CTRL":
+      _from: "CH5_CTRL_TRIG"
+      addressOffset: 0x160
+    "CH5_AL3_CTRL":
+      _from: "CH5_CTRL_TRIG"
+      addressOffset: 0x170
+    "CH6_AL1_CTRL":
+      _from: "CH6_CTRL_TRIG"
+      addressOffset: 0x190
+    "CH6_AL2_CTRL":
+      _from: "CH6_CTRL_TRIG"
+      addressOffset: 0x1a0
+    "CH6_AL3_CTRL":
+      _from: "CH6_CTRL_TRIG"
+      addressOffset: 0x1b0
+    "CH7_AL1_CTRL":
+      _from: "CH7_CTRL_TRIG"
+      addressOffset: 0x1d0
+    "CH7_AL2_CTRL":
+      _from: "CH7_CTRL_TRIG"
+      addressOffset: 0x1e0
+    "CH7_AL3_CTRL":
+      _from: "CH7_CTRL_TRIG"
+      addressOffset: 0x1f0
+    "CH8_AL1_CTRL":
+      _from: "CH8_CTRL_TRIG"
+      addressOffset: 0x210
+    "CH8_AL2_CTRL":
+      _from: "CH8_CTRL_TRIG"
+      addressOffset: 0x220
+    "CH8_AL3_CTRL":
+      _from: "CH8_CTRL_TRIG"
+      addressOffset: 0x230
+    "CH9_AL1_CTRL":
+      _from: "CH9_CTRL_TRIG"
+      addressOffset: 0x250
+    "CH9_AL2_CTRL":
+      _from: "CH9_CTRL_TRIG"
+      addressOffset: 0x260
+    "CH9_AL3_CTRL":
+      _from: "CH9_CTRL_TRIG"
+      addressOffset: 0x270
+    "CH10_AL1_CTRL":
+      _from: "CH10_CTRL_TRIG"
+      addressOffset: 0x290
+    "CH10_AL2_CTRL":
+      _from: "CH10_CTRL_TRIG"
+      addressOffset: 0x2a0
+    "CH10_AL3_CTRL":
+      _from: "CH10_CTRL_TRIG"
+      addressOffset: 0x2b0
+    "CH11_AL1_CTRL":
+      _from: "CH11_CTRL_TRIG"
+      addressOffset: 0x2d0
+    "CH11_AL2_CTRL":
+      _from: "CH11_CTRL_TRIG"
+      addressOffset: 0x2e0
+    "CH11_AL3_CTRL":
+      _from: "CH11_CTRL_TRIG"
+      addressOffset: 0x2f0
+  _cluster:
+    "CH%s":
+      "CH?_READ_ADDR,CH??_READ_ADDR": {}
+      "CH?_WRITE_ADDR,CH??_WRITE_ADDR": {}
+      "CH?_TRANS_COUNT,CH??_TRANS_COUNT": {}
+      "CH?_CTRL_TRIG,CH??_CTRL_TRIG": {}
+      "CH?_AL1_CTRL,CH??_AL1_CTRL": {}
+      "CH?_AL1_READ_ADDR,CH??_AL1_READ_ADDR": {}
+      "CH?_AL1_WRITE_ADDR,CH??_AL1_WRITE_ADDR": {}
+      "CH?_AL1_TRANS_COUNT_TRIG,CH??_AL1_TRANS_COUNT_TRIG": {}
+      "CH?_AL2_CTRL,CH??_AL2_CTRL": {}
+      "CH?_AL2_TRANS_COUNT,CH??_AL2_TRANS_COUNT": {}
+      "CH?_AL2_READ_ADDR,CH??_AL2_READ_ADDR": {}
+      "CH?_AL2_WRITE_ADDR_TRIG,CH??_AL2_WRITE_ADDR_TRIG": {}
+      "CH?_AL3_CTRL,CH??_AL3_CTRL": {}
+      "CH?_AL3_WRITE_ADDR,CH??_AL3_WRITE_ADDR": {}
+      "CH?_AL3_TRANS_COUNT,CH??_AL3_TRANS_COUNT": {}
+      "CH?_AL3_READ_ADDR_TRIG,CH??_AL3_READ_ADDR_TRIG": {}
+
+PIO0:
+  _array:
+    "INSTR_MEM*": {}
+    "TXF*": {}
+    "RXF*": {}
+
+  _cluster:
+    "SM%s":
+      "SM*_CLKDIV": {}
+      "SM*_EXECCTRL": {}
+      "SM*_SHIFTCTRL": {}
+      "SM*_ADDR": {}
+      "SM*_INSTR": {}
+      "SM*_PINCTRL": {}
+
+    "SM_IRQ%s":
+      "IRQ*_INTE": {}
+      "IRQ*_INTF": {}
+      "IRQ*_INTS": {}
+
+PWM:
+  "CH*_TOP":
+    _modify:
+      "CH0_TOP":
+        name: "TOP"
+
+  "CH*_CTR":
+    _modify:
+      "CH0_CTR":
+        name: "CTR"
+
+  _cluster:
+    "CH%s":
+      "CH*_CC":
+        name: "CC"
+      "CH*_CSR":
+        name: "CSR"
+      "CH*_CTR":
+        name: "CTR"
+      "CH*_DIV":
+        name: "DIV"
+      "CH*_TOP":
+        name: "TOP"
+
+IO_BANK0:
+  # Can't array registers unless they have the same number of fields, so add "pseudo" GPIO here
+  INTR3:
+    _add:
+      GPIO31_EDGE_HIGH:
+        bitOffset: 31
+        bitWidth: 1
+        access: read-write
+        modifiedWriteValues: oneToClear
+      GPIO31_EDGE_LOW:
+        bitOffset: 30
+        bitWidth: 1
+        access: read-write
+        modifiedWriteValues: oneToClear
+      GPIO31_LEVEL_HIGH:
+        bitOffset: 29
+        bitWidth: 1
+        access: read-only
+      GPIO31_LEVEL_LOW:
+        bitOffset: 28
+        bitWidth: 1
+        access: read-only
+      GPIO30_EDGE_HIGH:
+        bitOffset: 27
+        bitWidth: 1
+        access: read-write
+        modifiedWriteValues: oneToClear
+      GPIO30_EDGE_LOW:
+        bitOffset: 26
+        bitWidth: 1
+        access: read-write
+        modifiedWriteValues: oneToClear
+      GPIO30_LEVEL_HIGH:
+        bitOffset: 25
+        bitWidth: 1
+        access: read-only
+      GPIO30_LEVEL_LOW:
+        bitOffset: 24
+        bitWidth: 1
+        access: read-only
+  PROC0_INTE3:
+    _add:
+      GPIO31_EDGE_HIGH:
+        bitOffset: 31
+        bitWidth: 1
+        access: read-write
+      GPIO31_EDGE_LOW:
+        bitOffset: 30
+        bitWidth: 1
+        access: read-write
+      GPIO31_LEVEL_HIGH:
+        bitOffset: 29
+        bitWidth: 1
+        access: read-write
+      GPIO31_LEVEL_LOW:
+        bitOffset: 28
+        bitWidth: 1
+        access: read-write
+      GPIO30_EDGE_HIGH:
+        bitOffset: 27
+        bitWidth: 1
+        access: read-write
+      GPIO30_EDGE_LOW:
+        bitOffset: 26
+        bitWidth: 1
+        access: read-write
+      GPIO30_LEVEL_HIGH:
+        bitOffset: 25
+        bitWidth: 1
+        access: read-write
+      GPIO30_LEVEL_LOW:
+        bitOffset: 24
+        bitWidth: 1
+        access: read-write
+  PROC0_INTF3:
+    _add:
+        GPIO31_EDGE_HIGH:
+          bitOffset: 31
+          bitWidth: 1
+          access: read-write
+        GPIO31_EDGE_LOW:
+          bitOffset: 30
+          bitWidth: 1
+          access: read-write
+        GPIO31_LEVEL_HIGH:
+          bitOffset: 29
+          bitWidth: 1
+          access: read-write
+        GPIO31_LEVEL_LOW:
+          bitOffset: 28
+          bitWidth: 1
+          access: read-write
+        GPIO30_EDGE_HIGH:
+          bitOffset: 27
+          bitWidth: 1
+          access: read-write
+        GPIO30_EDGE_LOW:
+          bitOffset: 26
+          bitWidth: 1
+          access: read-write
+        GPIO30_LEVEL_HIGH:
+          bitOffset: 25
+          bitWidth: 1
+          access: read-write
+        GPIO30_LEVEL_LOW:
+          bitOffset: 24
+          bitWidth: 1
+          access: read-write
+  PROC0_INTS3:
+    _add:
+        GPIO31_EDGE_HIGH:
+          bitOffset: 31
+          bitWidth: 1
+          access: read-only
+        GPIO31_EDGE_LOW:
+          bitOffset: 30
+          bitWidth: 1
+          access: read-only
+        GPIO31_LEVEL_HIGH:
+          bitOffset: 29
+          bitWidth: 1
+          access: read-only
+        GPIO31_LEVEL_LOW:
+          bitOffset: 28
+          bitWidth: 1
+          access: read-only
+        GPIO30_EDGE_HIGH:
+          bitOffset: 27
+          bitWidth: 1
+          access: read-only
+        GPIO30_EDGE_LOW:
+          bitOffset: 26
+          bitWidth: 1
+          access: read-only
+        GPIO30_LEVEL_HIGH:
+          bitOffset: 25
+          bitWidth: 1
+          access: read-only
+        GPIO30_LEVEL_LOW:
+          bitOffset: 24
+          bitWidth: 1
+          access: read-only
+
+  PROC1_INTE3:
+    _add:
+      GPIO31_EDGE_HIGH:
+        bitOffset: 31
+        bitWidth: 1
+        access: read-write
+      GPIO31_EDGE_LOW:
+        bitOffset: 30
+        bitWidth: 1
+        access: read-write
+      GPIO31_LEVEL_HIGH:
+        bitOffset: 29
+        bitWidth: 1
+        access: read-write
+      GPIO31_LEVEL_LOW:
+        bitOffset: 28
+        bitWidth: 1
+        access: read-write
+      GPIO30_EDGE_HIGH:
+        bitOffset: 27
+        bitWidth: 1
+        access: read-write
+      GPIO30_EDGE_LOW:
+        bitOffset: 26
+        bitWidth: 1
+        access: read-write
+      GPIO30_LEVEL_HIGH:
+        bitOffset: 25
+        bitWidth: 1
+        access: read-write
+      GPIO30_LEVEL_LOW:
+        bitOffset: 24
+        bitWidth: 1
+        access: read-write
+  PROC1_INTF3:
+    _add:
+        GPIO31_EDGE_HIGH:
+          bitOffset: 31
+          bitWidth: 1
+          access: read-write
+        GPIO31_EDGE_LOW:
+          bitOffset: 30
+          bitWidth: 1
+          access: read-write
+        GPIO31_LEVEL_HIGH:
+          bitOffset: 29
+          bitWidth: 1
+          access: read-write
+        GPIO31_LEVEL_LOW:
+          bitOffset: 28
+          bitWidth: 1
+          access: read-write
+        GPIO30_EDGE_HIGH:
+          bitOffset: 27
+          bitWidth: 1
+          access: read-write
+        GPIO30_EDGE_LOW:
+          bitOffset: 26
+          bitWidth: 1
+          access: read-write
+        GPIO30_LEVEL_HIGH:
+          bitOffset: 25
+          bitWidth: 1
+          access: read-write
+        GPIO30_LEVEL_LOW:
+          bitOffset: 24
+          bitWidth: 1
+          access: read-write
+  PROC1_INTS3:
+    _add:
+        GPIO31_EDGE_HIGH:
+          bitOffset: 31
+          bitWidth: 1
+          access: read-only
+        GPIO31_EDGE_LOW:
+          bitOffset: 30
+          bitWidth: 1
+          access: read-only
+        GPIO31_LEVEL_HIGH:
+          bitOffset: 29
+          bitWidth: 1
+          access: read-only
+        GPIO31_LEVEL_LOW:
+          bitOffset: 28
+          bitWidth: 1
+          access: read-only
+        GPIO30_EDGE_HIGH:
+          bitOffset: 27
+          bitWidth: 1
+          access: read-only
+        GPIO30_EDGE_LOW:
+          bitOffset: 26
+          bitWidth: 1
+          access: read-only
+        GPIO30_LEVEL_HIGH:
+          bitOffset: 25
+          bitWidth: 1
+          access: read-only
+        GPIO30_LEVEL_LOW:
+          bitOffset: 24
+          bitWidth: 1
+          access: read-only
+  DORMANT_WAKE_INTE3:
+    _add:
+        GPIO31_EDGE_HIGH:
+          bitOffset: 31
+          bitWidth: 1
+          access: read-write
+        GPIO31_EDGE_LOW:
+          bitOffset: 30
+          bitWidth: 1
+          access: read-write
+        GPIO31_LEVEL_HIGH:
+          bitOffset: 29
+          bitWidth: 1
+          access: read-write
+        GPIO31_LEVEL_LOW:
+          bitOffset: 28
+          bitWidth: 1
+          access: read-write
+        GPIO30_EDGE_HIGH:
+          bitOffset: 27
+          bitWidth: 1
+          access: read-write
+        GPIO30_EDGE_LOW:
+          bitOffset: 26
+          bitWidth: 1
+          access: read-write
+        GPIO30_LEVEL_HIGH:
+          bitOffset: 25
+          bitWidth: 1
+          access: read-write
+        GPIO30_LEVEL_LOW:
+          bitOffset: 24
+          bitWidth: 1
+          access: read-write
+
+  DORMANT_WAKE_INTF3:
+    _add:
+        GPIO31_EDGE_HIGH:
+          bitOffset: 31
+          bitWidth: 1
+          access: read-write
+        GPIO31_EDGE_LOW:
+          bitOffset: 30
+          bitWidth: 1
+          access: read-write
+        GPIO31_LEVEL_HIGH:
+          bitOffset: 29
+          bitWidth: 1
+          access: read-write
+        GPIO31_LEVEL_LOW:
+          bitOffset: 28
+          bitWidth: 1
+          access: read-write
+        GPIO30_EDGE_HIGH:
+          bitOffset: 27
+          bitWidth: 1
+          access: read-write
+        GPIO30_EDGE_LOW:
+          bitOffset: 26
+          bitWidth: 1
+          access: read-write
+        GPIO30_LEVEL_HIGH:
+          bitOffset: 25
+          bitWidth: 1
+          access: read-write
+        GPIO30_LEVEL_LOW:
+          bitOffset: 24
+          bitWidth: 1
+          access: read-write
+
+  DORMANT_WAKE_INTS3:
+    _add:
+        GPIO31_EDGE_HIGH:
+          bitOffset: 31
+          bitWidth: 1
+          access: read-only
+        GPIO31_EDGE_LOW:
+          bitOffset: 30
+          bitWidth: 1
+          access: read-only
+        GPIO31_LEVEL_HIGH:
+          bitOffset: 29
+          bitWidth: 1
+          access: read-only
+        GPIO31_LEVEL_LOW:
+          bitOffset: 28
+          bitWidth: 1
+          access: read-only
+        GPIO30_EDGE_HIGH:
+          bitOffset: 27
+          bitWidth: 1
+          access: read-only
+        GPIO30_EDGE_LOW:
+          bitOffset: 26
+          bitWidth: 1
+          access: read-only
+        GPIO30_LEVEL_HIGH:
+          bitOffset: 25
+          bitWidth: 1
+          access: read-only
+        GPIO30_LEVEL_LOW:
+          bitOffset: 24
+          bitWidth: 1
+          access: read-only
+
+  _array:
+    "INTR*": {}
+    "PROC0_INTE*": {}
+    "PROC0_INTF*": {}
+    "PROC0_INTS*": {}
+    "PROC1_INTE*": {}
+    "PROC1_INTF*": {}
+    "PROC1_INTS*": {}
+    "DORMANT_WAKE_INTE*": {}
+    "DORMANT_WAKE_INTF*": {}
+    "DORMANT_WAKE_INTS*": {}
+
+  "GPIO*_CTRL":
+    _modify:
+      FUNCSEL:
+        description: "0-31 -> selects pin function according to the GPIO table. Not all options are valid for all GPIO pins."
+    FUNCSEL:
+      _replace_enum:
+        jtag: [0, "Connect to JTAG peripheral"]
+        spi: [1, "Connect to matching SPI peripheral"]
+        uart: [2, "Connect to matching UART peripheral"]
+        i2c: [3, "Connect to matching I2C peripheral"]
+        pwm: [4, "Connect to matching PWM peripheral"]
+        sio: [5, "Use as a GPIO pin (connect to SIO peripheral)"]
+        pio0: [6, "Connect to PIO0 peripheral"]
+        pio1: [7, "Connect to PIO1 peripheral"]
+        clock: [8, "Connect to Clock peripheral"]
+        usb: [9, "Connect to USB peripheral"]
+        "null": [31, "Connect to nothing"]
+
+  _cluster:
+    "GPIO%s":
+      "GPIO*_STATUS": {}
+      "GPIO*_CTRL": {}
+
+SPI0:
+  SSPCR0:
+    _modify:
+      FRF:
+        description: "Frame format."
+    FRF:
+      _replace_enum:
+        Motorola: [0, "Motorola SPI frame format"]
+        Texas_Instruments: [1, "Texas Instruments synchronous serial frame format"]
+        National_Semiconductor_Microwire: [2, "National Semiconductor Microwire frame format"]
+
+VREG_AND_CHIP_RESET:
+  VREG:
+    _modify:
+      VSEL:
+        description: "Output voltage select for on-chip voltage regulator."
+    VSEL:
+      _replace_enum:
+        Voltage0_80: [5, "0.80V"]
+        Voltage0_85: [6, "0.85V"]
+        Voltage0_90: [7, "0.90V"]
+        Voltage0_95: [8, "0.95V"]
+        Voltage1_00: [9, "1.00V"]
+        Voltage1_05: [10, "1.05V"]
+        Voltage1_10: [11, "1.10V (default)"]
+        Voltage1_15: [12, "1.15V"]
+        Voltage1_20: [13, "1.20V"]
+        Voltage1_25: [14, "1.25V"]
+        Voltage1_30: [15, "1.30V"]
+
+IO_QSPI:
+  _cluster:
+    "GPIO_QSPI%s":
+      "GPIO_QSPI_*_STATUS":
+        name: "GPIO_STATUS"
+      "GPIO_QSPI_*_CTRL":
+        name: "GPIO_CTRL"
+
+PADS_BANK0:
+  _array:
+    "GPIO*": {}
+
+USBCTRL_REGS:
+  SIE_STATUS:
+    LINE_STATE:
+      SE0: [0, "SE0"]
+      J: [1, "J"]
+      K: [2, "K"]
+      SE1: [3, "SE1"]
+
+  # The ADDR_ENDP* registers collected into the array HOST_ADDR_ENDP.
+  # This renaming is necessary to avoid collision with the "ADDR_ENDP" register used in device mode.
+  _array:
+    "ADDR_ENDP[123456789],ADDR_ENDP1[012345]":
+      name: "HOST_ADDR_ENDP%s"
+      description: "Interrupt endpoints. Only valid in HOST mode."
+
+ROSC:
+  _delete:
+    # RP2040-E7: ROSC and XOSC COUNT registers are unreliable
+    - COUNT
+    # RP2040-E10: BADWRITE field in ROSC STATUS register is unreliable
+    - STATUS
+
+  # RP2040-E10: BADWRITE field in ROSC STATUS register is unreliable
+  # We delete and add again to fix this
+  _add:
+    "STATUS":
+      description: "Ring Oscillator Status"
+      addressOffset: 0x0018
+      resetValue: 0x00000000
+      fields:
+        "STABLE":
+          description: "Oscillator is running and stable"
+          bitOffset: 31
+          bitWidth: 1
+          access: "read-only"
+        "DIV_RUNNING":
+          description: "post-divider is running\n this resets to 0 but transitions to 1 during chip startup"
+          bitOffset: 16
+          bitWidth: 1
+          access: "read-only"
+        "ENABLED":
+          description: "Oscillator is enabled but not necessarily running and stable\n this resets to 0 but transitions to 1 during chip startup"
+          bitOffset: 12
+          bitWidth: 1
+          access: "read-only"
+
+XOSC:
+  _delete:
+    # RP2040-E7: ROSC and XOSC COUNT registers are unreliable
+    - COUNT
+
+SIO:
+  _array:
+    "SPINLOCK[0123456789],SPINLOCK[12][0123456789],SPINLOCK3[01]":
+      _start_from_zero: true
+      description: _original
+      name: SPINLOCK%s
+
+USBCTRL_DPRAM:
+  _modify:
+    "EP1_IN_CONTROL":
+      description: "-"
+    "EP0_IN_BUFFER_CONTROL":
+      description: "-"
+
+  _array:
+    "EP*_IN_BUFFER_CONTROL,EP*_OUT_BUFFER_CONTROL":
+        _start_from_zero: true
+        description: _original
+        name: "EP_BUFFER_CONTROL%s"
+    "EP*_IN_CONTROL,EP*_OUT_CONTROL":
+        _start_from_zero: true
+        description: _original
+        name: "EP_CONTROL%s"
+
+  _copy:
+    EPX_CONTROL:
+      _from: "EP1_IN_CONTROL"
+      addressOffset: 0x100
+      description: "EPx Control (Host-mode only!)"
+
+  "EP*_IN_CONTROL,EP*_OUT_CONTROL":
+    _add:
+      HOST_POLL_INTERVAL:
+        description: "The interval the host controller should poll this endpoint. Only applicable for interrupt endpoints. Specified in ms - 1. For example: a value of 9 would poll the endpoint every 10ms."
+        bitOffset: 16
+        bitWidth: 10
+
+_add:
+  SW_IRQ:
+    description: Virtual Peripheral to access unused NVIC software interrupts
+    baseAddress: 0
+    interrupts:
+      sw0_irq:
+        description: "Software IRQ 0"
+        value: 26
+      sw1_irq:
+        description: "Software IRQ 1"
+        value: 27
+      sw2_irq:
+        description: "Software IRQ 2"
+        value: 28
+      sw3_irq:
+        description: "Software IRQ 3"
+        value: 29
+      sw4_irq:
+        description: "Software IRQ 4"
+        value: 30
+      sw5_irq:
+        description: "Software IRQ 5"
+        value: 31

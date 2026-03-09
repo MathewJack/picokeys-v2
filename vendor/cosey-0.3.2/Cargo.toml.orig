@@ -1,0 +1,28 @@
+[package]
+name = "cosey"
+version = "0.3.2"
+authors = ["Nicolas Stalder <n@stalder.io>"]
+license = "Apache-2.0 OR MIT"
+description = "Data types and serde for public COSE_Keys"
+categories = ["embedded", "encoding", "no-std"]
+keywords = ["cose", "cbor", "rust", "no-std"]
+repository = "https://github.com/ycrypto/cosey"
+readme = "README.md"
+edition = "2021"
+
+[dependencies]
+heapless-bytes = "0.3.0"
+serde_repr = "0.1"
+
+[dependencies.serde]
+version = "1.0"
+default-features = false
+features = ["derive"]
+
+[dev-dependencies]
+cbor-smol = "0.4"
+ciborium = "0.2.1"
+hex = "0.4.3"
+itertools = "0.12.0"
+quickcheck = "1.0.3"
+serde = "1"

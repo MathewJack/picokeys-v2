@@ -1,0 +1,25 @@
+[package]
+name = "totp-lite"
+version = "2.0.1"
+authors = ["Colin Woodbury <colin@fosskers.ca>"]
+edition = "2018"
+description = "A simple, correct TOTP library."
+homepage = "https://github.com/fosskers/totp-lite"
+repository = "https://github.com/fosskers/totp-lite"
+readme = "README.md"
+license = "MIT"
+keywords = ["authentication", "totp", "otp", "2fa"]
+categories = ["authentication"]
+
+[badges]
+github = { repository = "fosskers/totp-lite", branch = "master", workflow = "Rust" }
+
+[dependencies]
+digest = "0.10"
+hmac = "0.12"
+sha1 = "0.10"
+sha2 = "0.10"
+
+[dev-dependencies]
+version-sync = "0.9"
+koibumi-base32 = "0.0"

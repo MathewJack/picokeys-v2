@@ -1,0 +1,12 @@
+[package]
+name = "pio-core"
+version = "0.3.0"
+edition = "2021"
+license = "MIT"
+description = "Low-level internals for RP2040's PIO State Machines. You should use the pio crate instead."
+repository = "https://github.com/rp-rs/pio-rs"
+
+[dependencies]
+arrayvec = { version = "0.7", default-features = false }
+paste = "1.0"
+num_enum = { version = "0.7", default-features = false }

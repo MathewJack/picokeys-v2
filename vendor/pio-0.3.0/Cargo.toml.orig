@@ -1,0 +1,21 @@
+[package]
+name = "pio"
+version = "0.3.0"
+authors = ["snek", "The rp-rs developers"]
+edition = "2021"
+resolver = "2"
+license = "MIT"
+description = "Support for the Raspberry Silicon RP2040's PIO State Machines."
+repository = "https://github.com/rp-rs/pio-rs"
+
+[workspace]
+members = ["pio-proc", "pio-parser", "pio-core"]
+
+[dependencies]
+pio-core = { version = "0.3.0", path = "./pio-core" }
+pio-proc = { version = "0.3.0", path = "./pio-proc" }
+
+[dev-dependencies]
+test-generator = "0.3.0"
+pretty_assertions = "1.4"
+pio-parser = { path = "./pio-parser" }

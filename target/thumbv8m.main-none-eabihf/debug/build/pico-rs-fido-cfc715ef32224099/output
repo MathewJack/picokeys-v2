@@ -1,0 +1,2 @@
+cargo:rustc-env=FIRMWARE_VERSION=0.1.0
+cargo:rustc-env=BUILD_DATE=dev

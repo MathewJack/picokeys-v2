@@ -1,0 +1,23 @@
+[package]
+authors = ["Tethys Svensson"]
+name = "atsamd-hal-macros"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+categories = ["embedded", "hardware-support", "no-std"]
+description = "Procedural macros for the atsamd-hal library"
+documentation = "https://docs.rs/crate/atsamd-hal-macros/"
+repository = "https://github.com/atsamd-rs/atsamd"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+litrs = "0.4.1"
+phf = { version = "0.11.1", default-features = false }
+
+[build-dependencies]
+phf = { version = "0.11.1", default-features = false }
+phf_codegen = "0.11.1"
+serde = { version = "1.0.195", features = ["derive"] }
+serde_yaml = "0.9.30"

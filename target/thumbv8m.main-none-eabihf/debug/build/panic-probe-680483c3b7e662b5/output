@@ -1,0 +1,3 @@
+cargo:rustc-cfg=cortex_m
+cargo:rustc-cfg=armv8m
+cargo:rustc-cfg=armv8m_main

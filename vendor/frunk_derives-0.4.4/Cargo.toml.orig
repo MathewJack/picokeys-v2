@@ -1,0 +1,25 @@
+[package]
+name = "frunk_derives"
+edition = "2021"
+version = "0.4.4"
+authors = ["Lloyd <lloydmeta@gmail.com>"]
+description = "frunk_derives contains the custom derivations for certain traits in Frunk."
+license = "MIT"
+documentation = "https://docs.rs/frunk_derives"
+repository = "https://github.com/lloydmeta/frunk"
+keywords = ["Frunk", "derives"]
+
+[badges]
+travis-ci = { repository = "lloydmeta/frunk" }
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "2"
+quote = "1"
+
+[dependencies.frunk_proc_macro_helpers]
+path = "../proc-macro-helpers"
+default-features = false
+version = "0.1.4"

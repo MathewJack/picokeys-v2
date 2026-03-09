@@ -4,6 +4,7 @@ members = [
     "pico-rs-fido",
     "pico-rs-hsm",
     "picokeys-cli",
+    "fuzz"
 ]
 resolver = "2"
 

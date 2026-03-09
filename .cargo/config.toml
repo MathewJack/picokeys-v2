@@ -17,3 +17,11 @@ runner = "espflash flash --monitor"
 
 [env]
 DEFMT_LOG = "info"
+
+# --- vendor-start (managed by scripts/vendor.sh) ---
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor"
+# --- vendor-end ---

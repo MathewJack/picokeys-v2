@@ -1,0 +1,197 @@
+#===============================================================================
+# Package data
+#===============================================================================
+
+[package]
+authors = [
+  "Wez Furlong <wez@wezfurlong.org>",
+  "Paul Sajna <sajattack@gmail.com>",
+  "Michael van Niekerk <mvniekerk@gmail.com>",
+  "Jesse Braham <jesse@beta7.io>",
+  "Bradley Harden <bradleyharden@gmail.com>",
+]
+categories = ["embedded", "hardware-support", "no-std"]
+description = "HAL and Peripheral access API for ATSAMD11, ATSAMD21, ATSAMD51, ATSAME51, ATSAME53 and ATSAME54 microcontrollers"
+documentation = "https://docs.rs/crate/atsamd-hal/"
+edition = "2021"
+keywords = ["no-std", "arm", "cortex-m", "embedded-hal"]
+license = "MIT OR Apache-2.0"
+name = "atsamd-hal"
+readme = "README.md"
+repository = "https://github.com/atsamd-rs/atsamd"
+rust-version = "1.65"
+version = "0.17.0"
+
+[package.metadata.docs.rs]
+features = ["samd21g", "samd21g-rt", "usb", "dma"]
+
+#===============================================================================
+# Required depdendencies
+#===============================================================================
+
+[dependencies]
+aes = "0.7.5"
+atsamd-hal-macros = { version = "0.1.0", path = "../atsamd-hal-macros" }
+bitfield = "0.13"
+bitflags = "1.2.1"
+cipher = "0.3"
+cortex-m = "0.7"
+embedded-hal-02 = {package = "embedded-hal", version = "0.2", features = ["unproven"]}
+embedded-hal-1 = {package = "embedded-hal", version = "1.0.0"}
+embedded-hal-nb = "1.0.0"
+embedded-io = "0.6"
+fugit = "0.3"
+modular-bitfield = "0.11"
+nb = "1.0"
+num-traits = {version = "0.2.14", default-features = false}
+opaque-debug = "0.3.0"
+paste = "1.0.11"
+rand_core = "0.6"
+seq-macro = "0.3"
+typenum = "1.12.0"
+vcell = "0.1"
+void = {version = "1.0", default-features = false}
+
+#===============================================================================
+# Optional depdendencies
+#===============================================================================
+
+embedded-sdmmc = {version = "0.3", optional = true}
+jlink_rtt = {version = "0.2", optional = true}
+mcan-core = {version = "0.2", optional = true}
+rtic-monotonic = {version = "1.0", optional = true}
+usb-device = {version = "0.3.1", optional = true}
+defmt = {version = "0.3.4", optional = true}
+
+#===============================================================================
+# PACs
+#===============================================================================
+
+# The peripheral access crates (PAC) for each supported chip variant are listed
+# here. Each is an optional dependency, which means each PAC name also appears
+# as a Cargo feature. Users should not select PAC features manually. Instead,
+# users should specify a corresponding variant (see below). The variant features
+# will select the correct PAC, as well as other configuration features.
+
+atsamd11c = {version = "0.13.0", path = "../pac/atsamd11c", optional = true}
+atsamd11d = {version = "0.13.0", path = "../pac/atsamd11d", optional = true}
+
+atsamd21e = {version = "0.13.0", path = "../pac/atsamd21e", optional = true}
+atsamd21g = {version = "0.13.0", path = "../pac/atsamd21g", optional = true}
+atsamd21j = {version = "0.13.0", path = "../pac/atsamd21j", optional = true}
+
+atsamd51g = {version = "0.13.0", path = "../pac/atsamd51g", optional = true}
+atsamd51j = {version = "0.13.0", path = "../pac/atsamd51j", optional = true}
+atsamd51n = {version = "0.13.0", path = "../pac/atsamd51n", optional = true}
+atsamd51p = {version = "0.13.0", path = "../pac/atsamd51p", optional = true}
+
+atsame51g = {version = "0.13.0", path = "../pac/atsame51g", optional = true}
+atsame51j = {version = "0.13.0", path = "../pac/atsame51j", optional = true}
+atsame51n = {version = "0.13.0", path = "../pac/atsame51n", optional = true}
+
+atsame53j = {version = "0.13.0", path = "../pac/atsame53j", optional = true}
+atsame53n = {version = "0.13.0", path = "../pac/atsame53n", optional = true}
+
+atsame54n = {version = "0.13.0", path = "../pac/atsame54n", optional = true}
+atsame54p = {version = "0.13.0", path = "../pac/atsame54p", optional = true}
+
+#===============================================================================
+# Features
+#===============================================================================
+
+[features]
+
+#-------------------------------------------------------------------------------
+# Variant features
+#-------------------------------------------------------------------------------
+
+# Each of the following features corresponds to a supported chip variant. Users
+# should select one (and only one) feature corresponding to their target chip.
+# These features represent the public interface of the HAL and are not expected
+# to change. But all implied features are considered implementation details and
+# subject to change without notice.
+
+samd11c = ["device", "dep:atsamd11c"]
+samd11d = ["device", "dep:atsamd11d"]
+
+samd21e = ["device", "dep:atsamd21e"]
+samd21g = ["device", "dep:atsamd21g"]
+samd21j = ["device", "dep:atsamd21j"]
+
+samd21el = ["device", "dep:atsamd21e"]
+samd21gl = ["device", "dep:atsamd21g"]
+
+samd51g = ["device", "dep:atsamd51g"]
+samd51j = ["device", "dep:atsamd51j"]
+samd51n = ["device", "dep:atsamd51n"]
+samd51p = ["device", "dep:atsamd51p"]
+
+same51g = ["device", "dep:atsame51g"]
+same51j = ["device", "dep:atsame51j"]
+same51n = ["device", "dep:atsame51n"]
+
+same53j = ["device", "dep:atsame53j"]
+same53n = ["device", "dep:atsame53n"]
+
+same54n = ["device", "dep:atsame54n"]
+same54p = ["device", "dep:atsame54p"]
+
+#-------------------------------------------------------------------------------
+# RT features
+#-------------------------------------------------------------------------------
+
+# Instead of selecting a variant feature above, users can optionally select an
+# `-rt` feature, which enables the `rt` feature of the corresponding PAC.
+
+samd11c-rt = ["samd11c", "atsamd11c/rt"]
+samd11d-rt = ["samd11d", "atsamd11d/rt"]
+
+samd21e-rt = ["samd21e", "atsamd21e/rt"]
+samd21g-rt = ["samd21g", "atsamd21g/rt"]
+samd21j-rt = ["samd21j", "atsamd21j/rt"]
+
+samd21el-rt = ["samd21el", "atsamd21e/rt"]
+samd21gl-rt = ["samd21gl", "atsamd21g/rt"]
+
+samd51g-rt = ["samd51g", "atsamd51g/rt"]
+samd51j-rt = ["samd51j", "atsamd51j/rt"]
+samd51n-rt = ["samd51n", "atsamd51n/rt"]
+samd51p-rt = ["samd51p", "atsamd51p/rt"]
+
+same51g-rt = ["same51g", "atsame51g/rt"]
+same51j-rt = ["same51j", "atsame51j/rt"]
+same51n-rt = ["same51n", "atsame51n/rt"]
+
+same53j-rt = ["same53j", "atsame53j/rt"]
+same53n-rt = ["same53n", "atsame53n/rt"]
+
+same54n-rt = ["same54n", "atsame54n/rt"]
+same54p-rt = ["same54p", "atsame54p/rt"]
+
+#-------------------------------------------------------------------------------
+# User-selectable features
+#-------------------------------------------------------------------------------
+
+# These features are user-selectable and enable additional features within the
+# HAL, like USB or DMA support.
+can = ["mcan-core"]
+dma = []
+defmt = ["dep:defmt"]
+enable_unsafe_aes_newblock_cipher = []
+max-channels = ["dma"]
+rtic = ["rtic-monotonic"]
+sdmmc = ["embedded-sdmmc"]
+usb = ["usb-device"]
+use_rtt = ["jlink_rtt"]
+
+#===============================================================================
+# Implementation-details
+#===============================================================================
+
+# The remaining features are considered implementation details and subject to
+# change without notice. Users should not specify any of these features
+# manually.
+
+# The `device` feature tells the HAL that a device has been selected from the
+# feature list. It exists mostly to provide better error messages.
+device = []
